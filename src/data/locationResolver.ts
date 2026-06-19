@@ -63,7 +63,10 @@ class LocationResolver {
       try {
         console.log('[LocationResolver] Initializing master hierarchy...')
 
-        const paths = ['./data/thailand_hierarchy.json', 'data/thailand_hierarchy.json', '/data/thailand_hierarchy.json']
+        let base = import.meta.env.BASE_URL || '/'
+        if (!base.endsWith('/')) base += '/'
+        const mainPath = `${base}data/thailand_hierarchy.json`
+        const paths = [mainPath, './data/thailand_hierarchy.json', 'data/thailand_hierarchy.json', '/data/thailand_hierarchy.json']
         let res: Response | null = null
 
         for (const path of paths) {

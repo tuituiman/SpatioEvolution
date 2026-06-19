@@ -179,7 +179,9 @@ export async function loadGeoDataFromJSON(basePath?: string): Promise<void> {
   // Ensure LocationResolver is initialized first
   await locationResolver.init()
 
-  const finalBasePath = basePath ?? `${import.meta.env.BASE_URL || '/'}/geodata`.replace(/\/+/g, '/')
+  let base = import.meta.env.BASE_URL || '/'
+  if (!base.endsWith('/')) base += '/'
+  const finalBasePath = basePath ?? `${base}geodata`
   const tasks: Array<{ url: string; level: AdminLevel; name: string }> = [
     { url: `${finalBasePath}/provinces.json`, level: 'province', name: 'provinces' },
     { url: `${finalBasePath}/districts.json`, level: 'district', name: 'districts' },
