@@ -1,0 +1,184 @@
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ──────────────────────────────────────────
+   Base Reset & Global
+────────────────────────────────────────── */
+@layer base {
+  :root {
+    /* Light Mode Palette — พื้นหลังสว่าง */
+    --color-bg: #f8fafc;
+    /* Slate 50 */
+    --color-surface: #ffffff;
+    /* White */
+    --color-border: #e2e8f0;
+    /* Slate 200 */
+    --color-primary: #3b82f6;
+    /* Blue 500 */
+    --color-secondary: #8b5cf6;
+    --color-accent: #0891b2;
+    --color-danger: #ef4444;
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-text: #0f172a;
+    /* Slate 900 */
+    --color-muted: #64748b;
+    /* Slate 500 */
+
+    /* Map spatio variables to color variables for backward compatibility */
+    --spatio-bg: var(--color-bg);
+    --spatio-surface: var(--color-surface);
+    --spatio-border: var(--color-border);
+    --spatio-primary: var(--color-primary);
+    --spatio-text: var(--color-text);
+    --spatio-muted: var(--color-muted);
+  }
+
+  .dark {
+    color-scheme: dark;
+    /* Dark Mode Palette — พื้นหลังมืด */
+    --color-bg: #0a0f1e;
+    /* Dark Navy */
+    --color-surface: #111827;
+    /* Slate 900 */
+    --color-border: #1f2937;
+    /* Slate 800 */
+    --color-primary: #3b82f6;
+    /* Blue 500 */
+    --color-secondary: #8b5cf6;
+    --color-accent: #06b6d4;
+    --color-danger: #ef4444;
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-text: #f1f5f9;
+    /* Slate 100 */
+    --color-muted: #94a3b8;
+    /* Slate 400 */
+  }
+
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    @apply h-full w-full m-0 p-0 overflow-hidden;
+    background-color: var(--spatio-bg);
+    color: var(--spatio-text);
+    font-family: 'Inter', 'Noto Sans Thai', 'Leelawadee UI', Tahoma, sans-serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-muted);
+  }
+}
+
+/* ──────────────────────────────────────────
+   Leaflet Overrides
+   ────────────────────────────────────────── */
+.leaflet-container {
+  background: var(--color-bg) !important;
+  font-family: 'Inter', 'Noto Sans Thai', 'Leelawadee UI', Tahoma, sans-serif !important;
+}
+
+#spatio-map {
+  background-color: var(--color-bg) !important;
+}
+
+#spatio-map.export-transparent-bg,
+#spatio-map-export-wrapper.export-transparent-bg {
+  background-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+
+.leaflet-tooltip {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text) !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(8px);
+  font-size: 0.8rem;
+}
+
+.dark .leaflet-tooltip {
+  background: rgba(15, 23, 42, 0.96) !important;
+  border: 1px solid rgba(148, 163, 184, 0.25) !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-tooltip::before {
+  display: none !important;
+}
+
+.leaflet-control-attribution {
+  display: none !important;
+}
+
+/* ──────────────────────────────────────────
+   Component Utilities
+   ────────────────────────────────────────── */
+@layer components {
+  .spatio-card {
+    @apply bg-spatio-surface border border-spatio-border rounded-xl p-4;
+  }
+
+  .spatio-glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    color: var(--color-text);
+  }
+
+  .dark .spatio-glass {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f1f5f9;
+  }
+
+  .spatio-btn {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer select-none;
+  }
+
+  .spatio-btn-primary {
+    @apply spatio-btn bg-spatio-primary text-white hover:bg-blue-500 hover:opacity-90 active:scale-95;
+  }
+
+  .spatio-btn-ghost {
+    @apply spatio-btn text-spatio-muted hover:text-spatio-text hover:bg-black/5 dark:hover:bg-white/5;
+  }
+
+  .spatio-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .spatio-input {
+    @apply w-full bg-spatio-bg border border-spatio-border rounded-lg px-3 py-2 text-sm text-spatio-text placeholder-spatio-muted focus:outline-none focus:ring-2 focus:ring-spatio-primary focus:border-spatio-primary transition-all duration-200;
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "SpatioEvolution",
+  "short_name": "SpatioEvo",
+  "description": "ระบบวิเคราะห์ข้อมูลเชิงพื้นที่และเวลา สำหรับระบาดวิทยา",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "theme_color": "#0f172a",
+  "background_color": "#0f172a",
+  "lang": "th",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "science", "utilities"],
+  "screenshots": []
+}
