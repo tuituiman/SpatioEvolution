@@ -22,6 +22,8 @@ export interface LabelCallout {
     lineColor: string
     lineStyle: 'solid' | 'dashed' | 'dotted'
     markerType: 'dot' | 'arrow' | 'none'
+    textStrokeColor: string
+    textStrokeWidth: number
   }>
 }
 
@@ -38,6 +40,8 @@ export interface GlobalLabelStyle {
   lineColor: string
   lineStyle: 'solid' | 'dashed' | 'dotted'
   markerType: 'dot' | 'arrow' | 'none'
+  textStrokeColor: string
+  textStrokeWidth: number
 }
 
 export interface LabelSliceState {
@@ -49,6 +53,7 @@ export interface LabelSliceState {
   labelCallouts: Record<string, LabelCallout>
   globalLabelStyle: GlobalLabelStyle
   selectedLabelId: string | null
+  showLocationPrefix: boolean
 }
 
 export interface LabelSliceActions {
@@ -61,6 +66,7 @@ export interface LabelSliceActions {
   updateLabelCallout: (id: string, patch: Partial<LabelCallout>) => void
   setGlobalLabelStyle: (style: Partial<GlobalLabelStyle>) => void
   setSelectedLabelId: (id: string | null) => void
+  setShowLocationPrefix: (show: boolean) => void
 }
 
 export const labelSliceInitialState: LabelSliceState = {
@@ -83,6 +89,9 @@ export const labelSliceInitialState: LabelSliceState = {
     lineColor: '#3b82f6',
     lineStyle: 'solid',
     markerType: 'dot',
+    textStrokeColor: '#000000',
+    textStrokeWidth: 1.5,
   },
   selectedLabelId: null,
+  showLocationPrefix: true,
 }

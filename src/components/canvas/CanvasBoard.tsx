@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from 'react'
 import { clsx } from 'clsx'
 import { useAppStore, type MapWidgetConfig } from '../../store/useAppStore'
-import { COLOR_PALETTES, getNextStartValue, getMap } from '../../map/mapController'
+import { COLOR_PALETTES, getNextStartValue, getMap, getDecimalPlaces } from '../../map/mapController'
 import { MapCallouts } from '../MapCallouts'
 import { CanvasWidgetItem } from './CanvasWidgetItem'
 import { CanvasContextMenu } from './CanvasContextMenu'
@@ -80,17 +80,26 @@ export const CanvasBoard: React.FC<Props> = ({ mapRef }) => {
     ? customColors
     : (COLOR_PALETTES[palette] ?? COLOR_PALETTES.YlOrRd)
   const bands = useMemo(() => {
+    const allValues: number[] = [breaksStart]
+    globalBreaks.forEach((b, i) => {
+      allValues.push(b)
+      if (i > 0) {
+        allValues.push(getNextStartValue(globalBreaks[i - 1]))
+      }
+    })
+    const maxDec = allValues.length > 0 ? Math.max(...allValues.map(getDecimalPlaces), 0) : 0
+
     const list = globalBreaks.map((b, i) => {
       const startVal = i === 0 ? breaksStart : getNextStartValue(globalBreaks[i - 1])
       return {
         color: colors[i] ?? colors[colors.length - 1],
-        label: `${startVal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })} – ${b.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })}`
+        label: `${startVal.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })} – ${b.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`
       }
     })
     if (globalBreaks.length > 0) {
       list.push({
         color: colors[globalBreaks.length] ?? colors[colors.length - 1],
-        label: `> ${globalBreaks[globalBreaks.length - 1].toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })}`
+        label: `> ${globalBreaks[globalBreaks.length - 1].toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`
       })
     }
     return list

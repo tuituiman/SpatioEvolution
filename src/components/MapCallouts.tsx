@@ -37,6 +37,7 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
     selectedPeriods,
     canvasWidgets,
     widgetConfigs,
+    showLocationPrefix,
   } = useAppStore()
 
   const mapWidget = canvasWidgets?.find(w => w.type === 'map')
@@ -145,6 +146,9 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
           dispName = (nameLevelResolved === 'province' ? resolved.pName : nameLevelResolved === 'district' ? resolved.aName : resolved.tName) || dispName
         }
       }
+      if (language !== 'en' && !showLocationPrefix) {
+        dispName = stripThaiPrefix(dispName, nameLevelResolved)
+      }
 
       // Resolve Lat/Lng Centroid based on resolved label code level
       let latLng: [number, number] | null = null
@@ -236,7 +240,7 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
     }
 
     return list
-  }, [mapLabelSource, mapLabelColumn, mapLabelLimit, mapLabelThreshold, mapLabelNameLevel, adminLevel, scope, map, rawRows, dataKeys, mapVersion, dictionary, periods, language, labelCallouts])
+  }, [mapLabelSource, mapLabelColumn, mapLabelLimit, mapLabelThreshold, mapLabelNameLevel, adminLevel, scope, map, rawRows, dataKeys, mapVersion, dictionary, periods, language, labelCallouts, showLocationPrefix])
 
   // ─── 3) ข้อมูล label สุดท้าย: เพิ่มค่า value ปัจจุบัน (เปลี่ยนตามเฟรม แต่ตำแหน่งคงที่) ───
   const labelData = useMemo(() => {
@@ -365,7 +369,7 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
         if (mapLabelSource === 'name') {
           displayHtml = item.name
         } else if (mapLabelSource === 'value') {
-          displayHtml = language === 'th' ? `${item.value.toLocaleString()} ราย` : `${item.value.toLocaleString()} cases`
+          displayHtml = item.value.toLocaleString()
         } else if (mapLabelSource === 'name-value') {
           displayHtml = `${item.name} (${item.value.toLocaleString()})`
         } else if (mapLabelSource === 'custom-column') {
@@ -384,13 +388,15 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
               transform: 'translate(-50%, -50%)',
               fontSize: `${style.fontSize || 10}px`,
               color: style.color || '#ffffff',
-              backgroundColor: style.bgOpacity ? `rgba(${hexToRgb(style.bgColor || '#0f172a')}, ${style.bgOpacity})` : style.bgColor || '#0f172a',
-              borderColor: style.borderColor || '#475569',
-              borderWidth: `${style.borderWidth ?? 1}px`,
-              borderStyle: style.borderStyle || 'solid',
+              backgroundColor: isExportMode ? 'transparent' : (style.bgOpacity ? `rgba(${hexToRgb(style.bgColor || '#0f172a')}, ${style.bgOpacity})` : style.bgColor || '#0f172a'),
+              borderColor: isExportMode ? 'transparent' : (style.borderColor || '#475569'),
+              borderWidth: isExportMode ? 0 : `${style.borderWidth ?? 1}px`,
+              borderStyle: isExportMode ? 'none' : (style.borderStyle || 'solid'),
               borderRadius: `${style.borderRadius ?? 4}px`,
-              textShadow: isExportMode ? 'none' : '0 0 2px #000',
-              boxShadow: isSelected ? '0 0 0 2px #4f46e5, 0 10px 15px -3px rgba(0,0,0,0.5)' : '0 4px 6px -1px rgba(0,0,0,0.3)',
+              textShadow: isExportMode
+                ? createTextOutline(style.textStrokeWidth ?? 1.5, style.textStrokeColor || '#000000')
+                : '0 0 2px #000',
+              boxShadow: isExportMode ? 'none' : (isSelected ? '0 0 0 2px #4f46e5, 0 10px 15px -3px rgba(0,0,0,0.5)' : '0 4px 6px -1px rgba(0,0,0,0.3)'),
               fontFamily: "'Inter', 'Noto Sans Thai', 'Leelawadee UI', Tahoma, sans-serif",
             }}
             className={clsx(
@@ -435,4 +441,32 @@ function hexToRgb(hex: string): string {
   const b = parseInt(c.substring(4, 6), 16)
   if (isNaN(r) || isNaN(g) || isNaN(b)) return '15, 23, 42'
   return `${r}, ${g}, ${b}`
+}
+
+function createTextOutline(width: number, color: string): string {
+  if (width <= 0) return 'none'
+  const shadows = []
+  const step = width <= 1 ? 0.5 : 1
+  for (let x = -width; x <= width; x += step) {
+    for (let y = -width; y <= width; y += step) {
+      if (x === 0 && y === 0) continue
+      if (x * x + y * y <= width * width) {
+        shadows.push(`${x}px ${y}px 0 ${color}`)
+      }
+    }
+  }
+  shadows.push(`0px 0px 2px rgba(0,0,0,0.8)`)
+  return shadows.join(', ')
+}
+
+function stripThaiPrefix(name: string, level: 'province' | 'district' | 'subdistrict'): string {
+  if (!name) return ''
+  if (level === 'province') {
+    return name.replace(/^จังหวัด/, '')
+  } else if (level === 'district') {
+    return name.replace(/^(อำเภอ|เขต)/, '')
+  } else if (level === 'subdistrict') {
+    return name.replace(/^(ตำบล|แขวง)/, '')
+  }
+  return name
 }

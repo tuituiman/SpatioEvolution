@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { useTranslation } from '../hooks/useTranslation'
-import { initMap, destroyMap, loadGeoDataFromJSON, getMap, setPanePriority, switchBaseMap, updateBaseMapVisibility, COLOR_PALETTES, getNextStartValue, resetZoom, fitToScope } from '../map/mapController'
+import { initMap, destroyMap, loadGeoDataFromJSON, getMap, setPanePriority, switchBaseMap, updateBaseMapVisibility, COLOR_PALETTES, getNextStartValue, resetZoom, fitToScope, getDecimalPlaces } from '../map/mapController'
 import { mountChoropleth, updateChoropleth, clearChoroplethColors, maskChoropleth, destroyChoropleth, forceRedrawChoropleth } from '../map/choroplethLayer'
 import { mountBubbles, destroyBubbles } from '../map/bubbleLayer'
 import { mountBorders, updateBorderVisibility, applyBorderScope, destroyBorders } from '../map/borderLayer'
@@ -372,17 +372,26 @@ export function Explorer({ isExportMode = false }: { isExportMode?: boolean }) {
 
   // Pre-calculate colors for Legend
   const colors = COLOR_PALETTES[palette] ?? COLOR_PALETTES.YlOrRd
+  const allValues: number[] = [breaksStart]
+  globalBreaks.forEach((b, i) => {
+    allValues.push(b)
+    if (i > 0) {
+      allValues.push(getNextStartValue(globalBreaks[i - 1]))
+    }
+  })
+  const maxDec = allValues.length > 0 ? Math.max(...allValues.map(getDecimalPlaces), 0) : 0
+
   const bands = globalBreaks.map((b, i) => {
     const startVal = i === 0 ? breaksStart : getNextStartValue(globalBreaks[i - 1])
     return {
       color: colors[i] ?? colors[colors.length - 1],
-      label: `${startVal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })} – ${b.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })}`
+      label: `${startVal.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })} – ${b.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`
     }
   })
   if (globalBreaks.length > 0) {
     bands.push({
       color: colors[globalBreaks.length] ?? colors[colors.length - 1],
-      label: `> ${globalBreaks[globalBreaks.length - 1].toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })}`
+      label: `> ${globalBreaks[globalBreaks.length - 1].toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`
     })
   }
 

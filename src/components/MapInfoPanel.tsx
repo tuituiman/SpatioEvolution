@@ -3,7 +3,7 @@
  * แสดง: ตำนานสี (Legend) + สถิติ (Max, Min, Mean, Median, P25, P75)
  */
 import { useAppStore } from '../store/useAppStore'
-import { COLOR_PALETTES, getNextStartValue } from '../map/mapController'
+import { COLOR_PALETTES, getNextStartValue, getDecimalPlaces } from '../map/mapController'
 import { useTranslation } from '../hooks/useTranslation'
 import { MapPin } from 'lucide-react'
 
@@ -24,16 +24,25 @@ function LegendPanel({ breaks, palette }: { breaks: number[]; palette: string })
   if (breaks.length === 0) return null
   const colors = COLOR_PALETTES[palette] ?? COLOR_PALETTES.YlOrRd
 
+  const allValues: number[] = [breaksStart]
+  breaks.forEach((b, i) => {
+    allValues.push(b)
+    if (i > 0) {
+      allValues.push(getNextStartValue(breaks[i - 1]))
+    }
+  })
+  const maxDec = allValues.length > 0 ? Math.max(...allValues.map(getDecimalPlaces), 0) : 0
+
   const bands: { color: string; label: string }[] = breaks.map((b, i) => {
     const startVal = i === 0 ? breaksStart : getNextStartValue(breaks[i - 1])
     return {
       color: colors[i] ?? colors[colors.length - 1],
-      label: `${startVal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })} – ${b.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })}`,
+      label: `${startVal.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })} – ${b.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`,
     }
   })
   bands.push({
     color: colors[breaks.length] ?? colors[colors.length - 1],
-    label: `> ${breaks[breaks.length - 1].toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })}`,
+    label: `> ${breaks[breaks.length - 1].toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`,
   })
 
   return (

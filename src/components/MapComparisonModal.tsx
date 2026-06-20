@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import L from 'leaflet'
 import { useAppStore } from '../store/useAppStore'
-import { getMap, getColor, COLOR_PALETTES, getNextStartValue } from '../map/mapController'
+import { getMap, getColor, COLOR_PALETTES, getNextStartValue, getDecimalPlaces } from '../map/mapController'
 import { getLocKeys, isInScope, getScopeFilters, getCentroid } from '../map/layerUtils'
 import { getDictValue, getDictColor, buildCumulativeSlice } from '../data/aggregator'
 import { registry } from '../data/registry'
@@ -686,16 +686,25 @@ export const MapComparisonModal: React.FC<MapComparisonModalProps> = ({ isOpen, 
     const colors = (palette === 'Custom' && customColors && customColors.length > 0)
       ? customColors
       : (COLOR_PALETTES[palette] ?? COLOR_PALETTES.YlOrRd)
+    const allValues: number[] = [breaksStart]
+    globalBreaks.forEach((b, i) => {
+      allValues.push(b)
+      if (i > 0) {
+        allValues.push(getNextStartValue(globalBreaks[i - 1]))
+      }
+    })
+    const maxDec = allValues.length > 0 ? Math.max(...allValues.map(getDecimalPlaces), 0) : 0
+
     const bands: { color: string; label: string }[] = globalBreaks.map((b, i) => {
       const startVal = i === 0 ? breaksStart : getNextStartValue(globalBreaks[i - 1])
       return {
         color: colors[i] ?? colors[colors.length - 1],
-        label: `${startVal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })}–${b.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })}`
+        label: `${startVal.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}–${b.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`
       }
     })
     bands.push({
       color: colors[globalBreaks.length] ?? colors[colors.length - 1],
-      label: `>${globalBreaks[globalBreaks.length - 1].toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })}`
+      label: `>${globalBreaks[globalBreaks.length - 1].toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`
     })
 
     return (

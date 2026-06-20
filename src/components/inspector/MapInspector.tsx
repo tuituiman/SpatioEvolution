@@ -49,6 +49,7 @@ export const MapInspector: React.FC<Props> = ({ widgetId }) => {
     mapLabelThreshold, setMapLabelThreshold,
     mapLabelNameLevel, setMapLabelNameLevel,
     globalLabelStyle, updateGlobalLabelStyle,
+    showLocationPrefix, setShowLocationPrefix,
   } = useAppStore()
 
   const config = (widgetConfigs[widgetId] ?? {}) as MapWidgetConfig
@@ -177,6 +178,33 @@ export const MapInspector: React.FC<Props> = ({ widgetId }) => {
             <div className="space-y-1.5">
               <label className="text-[10px] font-semibold text-slate-400">สีตัวอักษร</label>
               <Swatch value={globalLabelStyle.color} onChange={v => updateGlobalLabelStyle({ color: v })} presets={COLOR_PRESETS} />
+            </div>
+
+            {/* Text Outline Thickness */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-semibold text-slate-400">ความหนาเส้นขอบอักษร: {globalLabelStyle.textStrokeWidth ?? 1.5}px</label>
+              <input type="range" min={0} max={4} step={0.5} value={globalLabelStyle.textStrokeWidth ?? 1.5}
+                onChange={e => updateGlobalLabelStyle({ textStrokeWidth: Number(e.target.value) })}
+                className="w-full accent-blue-500 cursor-pointer" />
+            </div>
+
+            {/* Text Outline Color */}
+            <div className="space-y-1.5 pb-2 border-b border-slate-800/40">
+              <label className="text-[10px] font-semibold text-slate-400">สีเส้นขอบอักษร</label>
+              <Swatch value={globalLabelStyle.textStrokeColor ?? '#000000'} onChange={v => updateGlobalLabelStyle({ textStrokeColor: v })} presets={['#000000', ...COLOR_PRESETS]} />
+            </div>
+
+            {/* Show Location Prefix */}
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800/60">
+              <div className="space-y-0.5 pr-2">
+                <span className="text-[10px] font-semibold text-slate-400 block">🏷️ แสดงคำนำหน้าพื้นที่</span>
+                <span className="text-[8px] text-slate-500 block">เช่น "จังหวัดลำปาง" / "เมืองลำปาง"</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                <input type="checkbox" checked={showLocationPrefix}
+                  onChange={e => setShowLocationPrefix(e.target.checked)} className="sr-only peer" />
+                <div className="w-8 h-4 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-500 after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600 peer-checked:after:bg-white" />
+              </label>
             </div>
 
             {/* Show callouts */}

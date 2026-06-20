@@ -275,6 +275,19 @@ export function getNextStartValue(v: number): number {
   return Number((v + increment).toFixed(numDecimals))
 }
 
+export function getDecimalPlaces(v: number): number {
+  const str = v.toString()
+  const dotIdx = str.indexOf('.')
+  if (dotIdx === -1) return 0
+  if (str.includes('e') || str.includes('E')) {
+    const parts = str.split(/[eE]/)
+    const decimals = (parts[0].split('.')[1] || '').length
+    const exp = parseInt(parts[1], 10)
+    if (exp < 0) return decimals - exp
+  }
+  return str.length - dotIdx - 1
+}
+
 export function calcBreaks(values: number[], numClasses: number = 5): number[] {
   let defaultBreaks = [1, 5, 10, 50, 100, 500, 1000, 5000]
   const targetLen = numClasses - 1

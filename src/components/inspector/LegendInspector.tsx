@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import type { LegendWidgetConfig } from '../../store/useAppStore'
+import { getNextStartValue, getDecimalPlaces, COLOR_PALETTES } from '../../map/mapController'
 
 interface Props { widgetId: string }
 
@@ -40,19 +41,43 @@ const CollapsibleSection: React.FC<{ title: string; children: React.ReactNode; d
 }
 
 export const LegendInspector: React.FC<Props> = ({ widgetId }) => {
-  const { widgetConfigs, setWidgetConfig, globalBreaks } = useAppStore()
+  const { widgetConfigs, setWidgetConfig, globalBreaks, breaksStart, colorMode, palette, customColors } = useAppStore()
   const config = (widgetConfigs[widgetId] ?? {}) as LegendWidgetConfig
   const setC = (patch: Partial<LegendWidgetConfig>) => setWidgetConfig(widgetId, patch as any)
 
-  const defaultLabels = useMemo(() => {
+  const defaultBands = useMemo(() => {
+    const colors = (palette === 'Custom' && customColors && customColors.length > 0)
+      ? customColors
+      : (COLOR_PALETTES[palette] ?? COLOR_PALETTES.YlOrRd)
+
+    const allValues: number[] = [breaksStart]
+    globalBreaks.forEach((b, i) => {
+      allValues.push(b)
+      if (i > 0) {
+        allValues.push(getNextStartValue(globalBreaks[i - 1]))
+      }
+    })
+    const maxDec = allValues.length > 0 ? Math.max(...allValues.map(getDecimalPlaces), 0) : 0
+
     const list = globalBreaks.map((b, i) => {
-      return i === 0 ? `1 – ${b.toLocaleString()}` : `${(globalBreaks[i - 1] + 1).toLocaleString()} – ${b.toLocaleString()}`
+      const startVal = i === 0 ? breaksStart : getNextStartValue(globalBreaks[i - 1])
+      return {
+        color: colors[i] ?? colors[colors.length - 1] ?? '#ccc',
+        label: `${startVal.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })} – ${b.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`
+      }
     })
     if (globalBreaks.length > 0) {
-      list.push(`> ${globalBreaks[globalBreaks.length - 1].toLocaleString()}`)
+      list.push({
+        color: colors[globalBreaks.length] ?? colors[colors.length - 1] ?? '#ccc',
+        label: `> ${globalBreaks[globalBreaks.length - 1].toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`
+      })
     }
     return list
-  }, [globalBreaks])
+  }, [globalBreaks, breaksStart, palette, customColors])
+
+  const defaultLabels = useMemo(() => {
+    return defaultBands.map(b => b.label)
+  }, [defaultBands])
 
   const handleCustomLabelChange = (index: number, val: string) => {
     setC({
@@ -61,6 +86,54 @@ export const LegendInspector: React.FC<Props> = ({ widgetId }) => {
         [index]: val
       }
     })
+  }
+
+  const handleCustomize = () => {
+    let initialBands: Array<{ color: string; label: string }> = []
+    if (colorMode !== 'custom' && defaultBands.length > 0) {
+      initialBands = defaultBands.map((b, i) => ({
+        color: b.color,
+        label: config.customLabels?.[i] || b.label
+      }))
+    } else {
+      initialBands = [
+        { color: '#22c55e', label: 'ช่วงความเสี่ยงต่ำ' },
+        { color: '#fbbf24', label: 'ช่วงความเสี่ยงปานกลาง' },
+        { color: '#ef4444', label: 'ช่วงความเสี่ยงสูง' }
+      ]
+    }
+    setC({ customBands: initialBands })
+  }
+
+  const handleRevert = () => {
+    setC({ customBands: undefined })
+  }
+
+  const handleCustomBandColorChange = (index: number, newColor: string) => {
+    if (!config.customBands) return
+    const updated = [...config.customBands]
+    updated[index] = { ...updated[index], color: newColor }
+    setC({ customBands: updated })
+  }
+
+  const handleCustomBandLabelChange = (index: number, newLabel: string) => {
+    if (!config.customBands) return
+    const updated = [...config.customBands]
+    updated[index] = { ...updated[index], label: newLabel }
+    setC({ customBands: updated })
+  }
+
+  const handleCustomBandDelete = (index: number) => {
+    if (!config.customBands) return
+    const updated = config.customBands.filter((_, idx) => idx !== index)
+    setC({ customBands: updated })
+  }
+
+  const handleCustomBandAdd = () => {
+    const defaultColor = COLOR_PRESETS[0] || '#ffffff'
+    const newBand = { color: defaultColor, label: `ช่วงข้อมูลใหม่` }
+    const updated = [...(config.customBands || []), newBand]
+    setC({ customBands: updated })
   }
 
   return (
@@ -154,21 +227,92 @@ export const LegendInspector: React.FC<Props> = ({ widgetId }) => {
 
         <hr className="border-slate-800" />
         
-        <div className="space-y-2">
-          <label className="text-[10px] font-semibold text-slate-400">แก้ไขข้อความแต่ละช่วง (เว้นว่างเพื่อใช้ค่าสถิติ)</label>
-          {defaultLabels.map((lbl, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span className="text-[9px] text-slate-500 w-4">{i + 1}.</span>
-              <input 
-                type="text" 
-                value={config.customLabels?.[i] || ''}
-                onChange={e => handleCustomLabelChange(i, e.target.value)}
-                placeholder={lbl}
-                className="flex-1 bg-slate-900 border border-slate-800 text-slate-200 rounded px-2 py-1 text-[10px] focus:outline-none focus:border-blue-500" 
-              />
+        {config.customBands ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-semibold text-slate-400">แก้ไขช่วงสัญลักษณ์และสีเอง</label>
+              <button
+                onClick={handleRevert}
+                className="px-2 py-1 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-blue-400 rounded text-[9px] font-bold transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+                title="ยกเลิกการปรับแต่งเองและกลับไปซิงก์ข้อมูลอัตโนมัติ"
+              >
+                🔄 ซิงก์ค่ากับแผนที่
+              </button>
             </div>
-          ))}
-        </div>
+
+            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+              {config.customBands.map((b, i) => (
+                <div key={i} className="flex items-center gap-2 bg-slate-900/30 p-1.5 rounded border border-slate-800/40">
+                  <span className="text-[9px] text-slate-500 w-3">{i + 1}.</span>
+                  <input
+                    type="color"
+                    value={b.color}
+                    onChange={e => handleCustomBandColorChange(i, e.target.value)}
+                    className="w-6 h-5 rounded cursor-pointer border-0 bg-transparent shrink-0"
+                    title="เลือกสี"
+                  />
+                  <input 
+                    type="text" 
+                    value={b.label}
+                    onChange={e => handleCustomBandLabelChange(i, e.target.value)}
+                    placeholder="พิมพ์ชื่อช่วง..."
+                    className="flex-1 bg-slate-950 border border-slate-800/80 text-slate-200 rounded px-2 py-1 text-[10px] focus:outline-none focus:border-blue-500" 
+                  />
+                  <button
+                    onClick={() => handleCustomBandDelete(i)}
+                    className="p-1 hover:bg-red-600/20 text-slate-500 hover:text-red-500 rounded transition-colors cursor-pointer"
+                    title="ลบช่วงสีนี้"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleCustomBandAdd}
+              className="w-full py-1.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:border-slate-700 text-slate-300 rounded text-[10px] font-semibold transition-all cursor-pointer text-center block active:scale-98"
+            >
+              ➕ เพิ่มช่วงสีสัญลักษณ์
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-semibold text-slate-400">
+                {colorMode === 'custom' ? 'สีกำหนดเองตามคอลัมน์สี' : 'ช่วงข้อมูลอัตโนมัติจากสถิติ'}
+              </label>
+              <button
+                onClick={handleCustomize}
+                className="px-2 py-1 bg-blue-600/90 hover:bg-blue-500 text-white rounded text-[9px] font-bold transition-all cursor-pointer active:scale-95 shadow-sm"
+              >
+                ✏️ กำหนดช่วงและสีเอง
+              </button>
+            </div>
+
+            {colorMode === 'custom' ? (
+              <p className="text-[9px] text-slate-500 italic bg-slate-900/25 p-2 rounded border border-slate-800/40">
+                ขณะนี้แผนที่แสดงสีกำหนดเองจากคอลัมน์ของตารางข้อมูล หากต้องการจัดทำคำอธิบายสีเองสำหรับออกรายงาน ให้กดปุ่มด้านบนได้เลยครับ
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <label className="text-[9px] text-slate-500 block">แก้ไขเฉพาะคำอธิบายช่วง (เว้นว่างเพื่อใช้ค่าสถิติอัตโนมัติ):</label>
+                {defaultLabels.map((lbl, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="text-[9px] text-slate-500 w-4">{i + 1}.</span>
+                    <input 
+                      type="text" 
+                      value={config.customLabels?.[i] || ''}
+                      onChange={e => handleCustomLabelChange(i, e.target.value)}
+                      placeholder={lbl}
+                      className="flex-1 bg-slate-900 border border-slate-800 text-slate-200 rounded px-2 py-1 text-[10px] focus:outline-none focus:border-blue-500" 
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </CollapsibleSection>
 
       {/* 4. พื้นหลังและขอบ */}

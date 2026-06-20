@@ -76,6 +76,10 @@ function improvedCalcBreaks(values: number[], numClasses: number = 5): number[] 
 describe('Inspect Legend and Stats', () => {
   it('diagnoses Flu_Report6768_Final_22.csv', async () => {
     const csvPath = path.resolve('Flu_Report6768_Final_22.csv')
+    if (!fs.existsSync(csvPath)) {
+      console.warn('Skipping diagnostic test: Flu_Report6768_Final_22.csv not found.')
+      return
+    }
     const csvContent = fs.readFileSync(csvPath, 'utf8')
     const lines = csvContent.split('\n').map(line => line.trim()).filter(Boolean)
     const header = lines[0].split(',')

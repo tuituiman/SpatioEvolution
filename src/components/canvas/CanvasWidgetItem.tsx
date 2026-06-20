@@ -324,7 +324,25 @@ export const CanvasWidgetItem: React.FC<Props> = ({ widget, isSelected, onSelect
               {config.customTitle || 'คำอธิบายสีสัญลักษณ์'}
             </span>
 
-            {colorMode === 'custom' ? (
+            {config.customBands ? (
+              <div className={clsx('overflow-hidden', isHorizontal ? 'flex flex-row flex-wrap gap-x-3.5 gap-y-1.5' : 'flex flex-col gap-1')}>
+                {config.customBands.map((b, i) => (
+                  <div key={i} className="flex items-center gap-1.5 py-0.5 font-sans">
+                    {renderSwatch(b.color, config.swatch)}
+                    <span
+                      style={{
+                        fontSize: `${config.labelFontSize ?? 10}px`,
+                        color: config.labelColor || (canvasSettings.theme === 'dark' ? '#cbd5e1' : '#1e293b'),
+                        fontFamily: "'Inter', 'Noto Sans Thai', 'Leelawadee UI', Tahoma, sans-serif",
+                      }}
+                      className="font-medium whitespace-nowrap"
+                    >
+                      {b.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : colorMode === 'custom' ? (
               <div className="flex items-center gap-1.5 py-0.5">
                 <div className="w-3.5 h-2.5 rounded bg-gradient-to-r from-red-500 via-emerald-400 to-blue-500 shrink-0 border border-slate-700/40" />
                 <span

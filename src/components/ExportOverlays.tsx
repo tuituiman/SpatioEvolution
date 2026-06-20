@@ -1,7 +1,7 @@
 import React from 'react'
 import { useAppStore } from '../store/useAppStore'
 import type { ChartWidgetConfig } from '../store/useAppStore'
-import { COLOR_PALETTES, getNextStartValue } from '../map/mapController'
+import { COLOR_PALETTES, getNextStartValue, getDecimalPlaces } from '../map/mapController'
 import { clsx } from 'clsx'
 import { EpiChart } from './EpiChart'
 
@@ -128,17 +128,26 @@ export function ExportOverlays() {
   // Pre-calculate colors for Legend
   const colors = COLOR_PALETTES[palette] ?? COLOR_PALETTES.YlOrRd
   const breaksStart = store.breaksStart
+  const allValues: number[] = [breaksStart]
+  breaks.forEach((b, i) => {
+    allValues.push(b)
+    if (i > 0) {
+      allValues.push(getNextStartValue(breaks[i - 1]))
+    }
+  })
+  const maxDec = allValues.length > 0 ? Math.max(...allValues.map(getDecimalPlaces), 0) : 0
+
   const bands = breaks.map((b, i) => {
     const startVal = i === 0 ? breaksStart : getNextStartValue(breaks[i - 1])
     return {
       color: colors[i] ?? colors[colors.length - 1],
-      label: `${startVal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })} – ${b.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })}`
+      label: `${startVal.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })} – ${b.toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`
     }
   })
   if (breaks.length > 0) {
     bands.push({
       color: colors[breaks.length] ?? colors[colors.length - 1],
-      label: `> ${breaks[breaks.length - 1].toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 10 })}`
+      label: `> ${breaks[breaks.length - 1].toLocaleString(undefined, { minimumFractionDigits: maxDec, maximumFractionDigits: maxDec })}`
     })
   }
 

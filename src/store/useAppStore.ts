@@ -120,6 +120,7 @@ export interface LegendWidgetConfig {
   labelFontSize: number
   labelColor: string
   customLabels?: Record<number, string>
+  customBands?: Array<{ color: string; label: string }>
   bgColor: string
   bgOpacity: number
   borderColor?: string
@@ -364,6 +365,8 @@ export interface AppState {
       lineColor: string
       lineStyle: 'solid' | 'dashed' | 'dotted'
       markerType: 'dot' | 'arrow' | 'none'
+      textStrokeColor: string
+      textStrokeWidth: number
     }>
   }>
   globalLabelStyle: {
@@ -379,8 +382,11 @@ export interface AppState {
     lineColor: string
     lineStyle: 'solid' | 'dashed' | 'dotted'
     markerType: 'dot' | 'arrow' | 'none'
+    textStrokeColor: string
+    textStrokeWidth: number
   }
   selectedLabelId: string | null
+  showLocationPrefix: boolean
 
   // ── Canvas Artboard Compositor States ──
   canvasWidgets: CanvasWidget[]
@@ -472,6 +478,8 @@ export interface AppActions {
     lineColor: string
     lineStyle: 'solid' | 'dashed' | 'dotted'
     markerType: 'dot' | 'arrow' | 'none'
+    textStrokeColor: string
+    textStrokeWidth: number
   }>) => void
   updateGlobalLabelStyle: (style: Partial<{
     fontSize: number
@@ -486,9 +494,12 @@ export interface AppActions {
     lineColor: string
     lineStyle: 'solid' | 'dashed' | 'dotted'
     markerType: 'dot' | 'arrow' | 'none'
+    textStrokeColor: string
+    textStrokeWidth: number
   }>) => void
   resetLabelOffset: (id: string) => void
   setSelectedLabelId: (id: string | null) => void
+  setShowLocationPrefix: (show: boolean) => void
   addCanvasWidget: (type: 'map' | 'chart' | 'title' | 'legend' | 'logo') => void
   deleteCanvasWidget: (id: string) => void
   updateWidgetGeometry: (id: string, x: number, y: number, w: number, h: number) => void
@@ -631,9 +642,12 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     lineWidth: 1.5,
     lineColor: '#f1f5f9',
     lineStyle: 'dashed',
-    markerType: 'dot'
+    markerType: 'dot',
+    textStrokeColor: '#000000',
+    textStrokeWidth: 1.5
   },
   selectedLabelId: null,
+  showLocationPrefix: true,
   canvasWidgets: [],
   canvasSettings: {
     aspectRatio: '16:9',
@@ -957,6 +971,10 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       clearScopeCheckCache()
       clearCumulativeCache()
 
+      const hasColorKey = !!latest.keys.color
+      const isStatic = latest.ingestionMode === 'admin_static' || latest.ingestionMode === 'coord_static'
+      const determinedColorMode = (hasColorKey && isStatic) ? 'custom' : 'value'
+
       set(s => ({
         rawRows: latest.rows,
         activeDatasetId: latest.id,
@@ -970,6 +988,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         dataKeys: latest.keys,
         ingestionMode: latest.ingestionMode,
         retentionDays: latest.retentionDays ?? s.retentionDays,
+        colorMode: determinedColorMode,
       }))
 
       // ── สร้าง dictionary + periods ใหม่จาก rawRows (เหมือนตอน import ครั้งแรก) ──
@@ -1054,12 +1073,20 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       clearScopeCheckCache()
       clearCumulativeCache()
 
+      const hasColorKey = !!ds.keys.color
+      const isStatic = ds.ingestionMode === 'admin_static' || ds.ingestionMode === 'coord_static'
+      const determinedColorMode = (hasColorKey && isStatic) ? 'custom' : 'value'
+
       set(s => ({
         rawRows: ds.rows,
         dataKeys: ds.keys,
         activeDatasetId: id,
         ingestionMode: ds.ingestionMode,
         retentionDays: ds.retentionDays ?? s.retentionDays,
+        isBreaksCustomized: false,
+        breaksStart: 1,
+        selectedLabelId: null,
+        colorMode: determinedColorMode,
         datasets: datasets.map(d => ({
           id: d.id,
           fileName: d.fileName,
@@ -1235,6 +1262,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     }
   }),
   setSelectedLabelId: (id) => set({ selectedLabelId: id }),
+  setShowLocationPrefix: (showLocationPrefix) => set({ showLocationPrefix }),
 
 
   setLoading: (loading, msg = '') => set({ isLoading: loading, loadingMsg: msg }),
