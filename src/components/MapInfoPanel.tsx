@@ -174,12 +174,12 @@ export function MapInfoPanel({ periodsReady, isColorOnly = false }: {
   periodsReady: boolean
   isColorOnly?: boolean
 }) {
-  const { palette, colorMode, globalBreaks, displayMode } = useAppStore()
+  const { palette, colorMode, globalBreaks, displayMode, geoMode } = useAppStore()
   const { t } = useTranslation()
   const breaks = globalBreaks
 
   const isCustomColor = colorMode === 'custom'
-  const isShowableMode = displayMode === 'choropleth' || displayMode === 'bubble'
+  const isShowableMode = geoMode === 'admin' && (displayMode === 'choropleth' || displayMode === 'bubble')
 
   // color-only mode: ไม่แสดง legend (ไม่มี breaks) และไม่แสดงสถิติ
   const showLegend = periodsReady && !isColorOnly && !isCustomColor && breaks.length > 0 && isShowableMode
