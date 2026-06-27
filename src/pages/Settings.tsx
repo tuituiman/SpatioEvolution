@@ -11,7 +11,7 @@ export function Settings() {
 
   return (
     <div className="p-6 h-full overflow-auto animate-fade-in bg-spatio-bg text-spatio-text transition-colors">
-      <div className="max-w-[580px] space-y-4">
+      <div className="max-w-[600px] space-y-4">
 
         {/* Appearance Settings */}
         <div className="spatio-card bg-spatio-surface border border-spatio-border p-4 rounded-xl shadow-lg transition-colors">
@@ -76,7 +76,7 @@ export function Settings() {
               {t('about_desc4')}
             </p>
           </div>
-          <div className="shrink-0 flex items-center justify-end w-[240px] h-[140px]">
+          <div className="shrink-0 flex items-center justify-end w-[280px] h-[170px]">
             <img 
               src={`${import.meta.env.BASE_URL}SpatioEvolution_logo.png`} 
               alt="SpatioEvolution" 
