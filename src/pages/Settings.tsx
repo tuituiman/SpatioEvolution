@@ -66,14 +66,23 @@ export function Settings() {
         </div>
 
         {/* About */}
-        <div className="spatio-card bg-spatio-surface border border-spatio-border p-4 rounded-xl shadow-lg transition-colors">
-          <h3 className="text-sm font-semibold mb-3">{t('settings_about')}</h3>
-          <p className="text-xs text-spatio-muted leading-relaxed">
-            {t('about_desc1')}<br />
-            {t('about_desc2')}<br />
-            {t('about_desc3')}<br />
-            {t('about_desc4')}
-          </p>
+        <div className="spatio-card bg-spatio-surface border border-spatio-border p-4 rounded-xl shadow-lg transition-colors flex items-center justify-between gap-4">
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold mb-3">{t('settings_about')}</h3>
+            <p className="text-xs text-spatio-muted leading-relaxed">
+              {t('about_desc1')}<br />
+              {t('about_desc2')}<br />
+              {t('about_desc3')}<br />
+              {t('about_desc4')}
+            </p>
+          </div>
+          <div className="shrink-0 flex items-center justify-center p-2 rounded-xl bg-slate-800/5 dark:bg-slate-100/5 border border-slate-300/10 dark:border-slate-700/10 w-32 h-20">
+            <img 
+              src={`${import.meta.env.BASE_URL}SpatioEvolution_logo.png`} 
+              alt="SpatioEvolution" 
+              className="max-w-full max-h-full object-contain" 
+            />
+          </div>
         </div>
 
       </div>

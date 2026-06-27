@@ -48,7 +48,7 @@ export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: Sidebar
     >
       {/* Logo */}
       <div className={clsx(
-        'flex items-center gap-3 px-4 py-4 border-b border-spatio-border',
+        'flex items-center gap-3 px-4 py-5 border-b border-spatio-border',
         collapsed && 'justify-center px-0'
       )}>
         {collapsed ? (
@@ -58,13 +58,15 @@ export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: Sidebar
             className="w-8 h-8 rounded-lg object-contain" 
           />
         ) : (
-          <div className="flex flex-col gap-1 w-full">
+          <div className="flex items-center justify-between w-full select-none">
             <img 
               src={`${import.meta.env.BASE_URL}SpatioEvolution_logo.png`} 
               alt="Logo" 
-              className="h-8 object-contain object-left max-w-full" 
+              className="w-[115px] object-contain object-left shrink-0" 
             />
-            <div className="text-[10px] text-spatio-muted px-1 mt-0.5">Ver 2.0</div>
+            <span className="text-[9px] font-black text-spatio-muted bg-slate-500/10 border border-slate-500/20 px-1.5 py-0.5 rounded-md whitespace-nowrap leading-none shrink-0">
+              v2.0
+            </span>
           </div>
         )}
       </div>
