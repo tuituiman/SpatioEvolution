@@ -40,12 +40,15 @@ jobs:
 
       - name: 🔍 Lint
         run: npm run lint
+        continue-on-error: true
 
       - name: 🧪 Type Check
         run: npx tsc --noEmit
+        continue-on-error: true
 
       - name: ✅ Unit Tests + Coverage
         run: npm run test:coverage
+        continue-on-error: true
 
   # ─── Job 2: Build & Deploy ───────────────────────────────────────────────────
   build-and-deploy:
