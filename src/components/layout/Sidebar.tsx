@@ -53,14 +53,14 @@ export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: Sidebar
       )}>
         {collapsed ? (
           <img 
-            src="/SpatioEvolution_icon.png" 
+            src={`${import.meta.env.BASE_URL}SpatioEvolution_icon.png`} 
             alt="Icon" 
             className="w-8 h-8 rounded-lg object-contain" 
           />
         ) : (
           <div className="flex flex-col gap-1 w-full">
             <img 
-              src="/SpatioEvolution_logo.png" 
+              src={`${import.meta.env.BASE_URL}SpatioEvolution_logo.png`} 
               alt="Logo" 
               className="h-8 object-contain object-left max-w-full" 
             />
