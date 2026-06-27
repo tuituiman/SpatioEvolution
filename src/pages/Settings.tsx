@@ -69,12 +69,17 @@ export function Settings() {
         <div className="spatio-card bg-spatio-surface border border-spatio-border p-4 rounded-xl shadow-lg transition-colors flex items-center justify-between gap-6">
           <div className="flex-1">
             <h3 className="text-sm font-semibold mb-3">{t('settings_about')}</h3>
-            <p className="text-xs text-spatio-muted leading-relaxed whitespace-nowrap">
-              {t('about_desc1')}<br />
-              {t('about_desc2')}<br />
-              {t('about_desc3')}<br />
-              {t('about_desc4')}
-            </p>
+            <div className="text-xs text-spatio-muted leading-relaxed">
+              <div className="whitespace-nowrap">
+                {t('about_desc1')}<br />
+                {t('about_desc2')}<br />
+                {t('about_desc3')}<br />
+                {t('about_desc4')}
+              </div>
+              <div className="mt-4 text-[10px] opacity-85 whitespace-normal max-w-[260px] leading-normal font-medium">
+                {t('about_developed_by')}
+              </div>
+            </div>
           </div>
           <div className="shrink-0 flex items-center justify-end w-[280px] h-[170px]">
             <img 
