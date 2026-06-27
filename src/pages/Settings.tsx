@@ -78,10 +78,18 @@ export function Settings() {
               </div>
               <div className="mt-4 text-[10px] opacity-85 whitespace-normal max-w-[260px] leading-normal font-medium">
                 {t('about_developed_by').includes(' : ') ? (
-                  <>
-                    <span className="font-bold text-spatio-text/90">{t('about_developed_by').split(' : ')[0]}:</span>
-                    <div className="mt-1">{t('about_developed_by').split(' : ')[1]}</div>
-                  </>
+                  (() => {
+                    const [label, fullValue] = t('about_developed_by').split(' : ');
+                    const lines = fullValue.split(' | ');
+                    return (
+                      <>
+                        <span className="font-bold text-spatio-text/90">{label}:</span>
+                        {lines.map((line, idx) => (
+                          <div key={idx} className="mt-1">{line}</div>
+                        ))}
+                      </>
+                    );
+                  })()
                 ) : (
                   t('about_developed_by')
                 )}
