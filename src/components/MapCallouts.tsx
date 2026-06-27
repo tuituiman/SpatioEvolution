@@ -94,8 +94,8 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
     let list: Array<{
       id: string
       name: string
-      resolvedMaxValue: number
-      featureMaxValue: number
+      resolvedValue: number
+      featureValue: number
       latLng: [number, number]
       customVal?: string
       nameLevelCode: string
@@ -183,26 +183,20 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
         }
       }
 
-      // Calculate featureMaxValue (at native adminLevel) & resolvedMaxValue (at nameLevelResolved)
-      let featureMaxValue = 0
-      let resolvedMaxValue = 0
-      for (const period of periods) {
-        const slice = dictionary[period.key]
-        if (slice) {
-          const fVal = lookupValue(slice, adminLevel, pCode, aCode, tCode)
-          if (fVal > featureMaxValue) featureMaxValue = fVal
-
-          const rVal = lookupValue(slice, nameLevelResolved, pCode, aCode, tCode)
-          if (rVal > resolvedMaxValue) resolvedMaxValue = rVal
-        }
+      // Calculate featureValue & resolvedValue for the current active frame (periodSlice)
+      let featureValue = 0
+      let resolvedValue = 0
+      if (periodSlice) {
+        featureValue = lookupValue(periodSlice, adminLevel, pCode, aCode, tCode)
+        resolvedValue = lookupValue(periodSlice, nameLevelResolved, pCode, aCode, tCode)
       }
 
       const id = adminLevel === 'province' ? pCode : adminLevel === 'district' ? aCode : tCode
       list.push({
         id,
         name: dispName,
-        resolvedMaxValue,
-        featureMaxValue,
+        resolvedValue,
+        featureValue,
         latLng,
         customVal,
         nameLevelCode: labelCode,
@@ -213,44 +207,44 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
       })
     })
 
-    // Deduplicate by nameLevelCode (keep the representative with the highest native featureMaxValue for centroid placement)
+    // Deduplicate by nameLevelCode (keep the representative with the highest native featureValue for centroid placement)
     if (mapLabelNameLevel && mapLabelNameLevel !== 'default') {
       const grouped: Record<string, typeof list[number]> = {}
       list.forEach(item => {
         const key = item.nameLevelCode
-        if (!grouped[key] || item.featureMaxValue > grouped[key].featureMaxValue) {
+        if (!grouped[key] || item.featureValue > grouped[key].featureValue) {
           grouped[key] = item
         }
       })
       list = Object.values(grouped)
     }
 
-    // Apply Density Limit Filters ─ sorting and filtering by the resolved level value
+    // Apply Density Limit Filters ─ sorting and filtering by the resolved level value in the current period
     if (mapLabelLimit === 'top-5') {
-      list.sort((a, b) => b.resolvedMaxValue - a.resolvedMaxValue)
+      list.sort((a, b) => b.resolvedValue - a.resolvedValue)
       list = list.slice(0, 5)
     } else if (mapLabelLimit === 'top-10') {
-      list.sort((a, b) => b.resolvedMaxValue - a.resolvedMaxValue)
+      list.sort((a, b) => b.resolvedValue - a.resolvedValue)
       list = list.slice(0, 10)
     } else if (mapLabelLimit === 'top-20') {
-      list.sort((a, b) => b.resolvedMaxValue - a.resolvedMaxValue)
+      list.sort((a, b) => b.resolvedValue - a.resolvedValue)
       list = list.slice(0, 20)
     } else if (mapLabelLimit === 'threshold') {
-      list = list.filter(item => item.resolvedMaxValue >= mapLabelThreshold)
+      list = list.filter(item => item.resolvedValue >= mapLabelThreshold)
     }
 
     return list
-  }, [mapLabelSource, mapLabelColumn, mapLabelLimit, mapLabelThreshold, mapLabelNameLevel, adminLevel, scope, map, rawRows, dataKeys, mapVersion, dictionary, periods, language, labelCallouts, showLocationPrefix])
+  }, [mapLabelSource, mapLabelColumn, mapLabelLimit, mapLabelThreshold, mapLabelNameLevel, adminLevel, scope, map, rawRows, dataKeys, mapVersion, dictionary, periods, language, labelCallouts, showLocationPrefix, periodSlice])
 
-  // ─── 3) ข้อมูล label สุดท้าย: เพิ่มค่า value ปัจจุบัน (เปลี่ยนตามเฟรม แต่ตำแหน่งคงที่) ───
+  // ─── 3) ข้อมูล label สุดท้าย ───
   const labelData = useMemo(() => {
-    if (!stableLayout.length || !periodSlice) return []
+    if (!stableLayout.length) return []
 
     return stableLayout.map(item => ({
       ...item,
-      value: lookupValue(periodSlice, item.nameLevelResolved, item.pCode, item.aCode, item.tCode),
+      value: item.resolvedValue,
     }))
-  }, [stableLayout, periodSlice])
+  }, [stableLayout])
 
   // Drag interaction handler
   const handleDragStart = (e: React.MouseEvent, id: string, initialDx: number, initialDy: number) => {
