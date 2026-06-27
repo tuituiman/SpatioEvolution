@@ -66,42 +66,47 @@ export function Settings() {
         </div>
 
         {/* About */}
-        <div className="spatio-card bg-spatio-surface border border-spatio-border p-4 rounded-xl shadow-lg transition-colors flex items-center justify-between gap-6">
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold mb-3">{t('settings_about')}</h3>
-            <div className="text-xs text-spatio-muted leading-relaxed">
-              <div className="whitespace-nowrap">
+        <div className="spatio-card bg-spatio-surface border border-spatio-border p-4 rounded-xl shadow-lg transition-colors flex flex-col gap-4">
+          {/* Top row: Descriptions & Logo */}
+          <div className="flex items-center justify-between gap-6">
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold mb-3">{t('settings_about')}</h3>
+              <div className="text-xs text-spatio-muted leading-relaxed whitespace-nowrap">
                 {t('about_desc1')}<br />
                 {t('about_desc2')}<br />
                 {t('about_desc3')}<br />
                 {t('about_desc4')}
               </div>
-              <div className="mt-4 text-[10px] opacity-85 whitespace-normal max-w-[260px] leading-normal font-medium">
-                {t('about_developed_by').includes(' : ') ? (
-                  (() => {
-                    const [label, fullValue] = t('about_developed_by').split(' : ');
-                    const lines = fullValue.split(' | ');
-                    return (
-                      <>
-                        <span className="font-bold text-spatio-text/90">{label}:</span>
-                        {lines.map((line, idx) => (
-                          <div key={idx} className="mt-1">{line}</div>
-                        ))}
-                      </>
-                    );
-                  })()
-                ) : (
-                  t('about_developed_by')
-                )}
-              </div>
+            </div>
+            <div className="shrink-0 flex items-center justify-end w-[280px] h-[170px]">
+              <img 
+                src={`${import.meta.env.BASE_URL}SpatioEvolution_logo.png`} 
+                alt="SpatioEvolution" 
+                className="max-w-full max-h-full object-contain" 
+              />
             </div>
           </div>
-          <div className="shrink-0 flex items-center justify-end w-[280px] h-[170px]">
-            <img 
-              src={`${import.meta.env.BASE_URL}SpatioEvolution_logo.png`} 
-              alt="SpatioEvolution" 
-              className="max-w-full max-h-full object-contain" 
-            />
+
+          {/* Bottom row: Credits */}
+          <div className="border-t border-spatio-border/50 pt-3 text-[10px] text-spatio-muted/80 leading-normal">
+            {t('about_developed_by').includes(' : ') ? (
+              (() => {
+                const [label, fullValue] = t('about_developed_by').split(' : ');
+                const lines = fullValue.split(' | ');
+                return (
+                  <>
+                    <span className="font-bold text-spatio-text/90">{label}:</span>
+                    <div className="mt-1 flex flex-col gap-0.5 text-spatio-muted">
+                      {lines.map((line, idx) => (
+                        <div key={idx} className="whitespace-nowrap">{line}</div>
+                      ))}
+                    </div>
+                  </>
+                );
+              })()
+            ) : (
+              t('about_developed_by')
+            )}
           </div>
         </div>
 
