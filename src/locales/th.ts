@@ -68,6 +68,7 @@ export const th = {
   exp_vis_bubble: 'วงกลม',
   exp_vis_coords: 'จุดพิกัด',
   exp_vis_bubble_disabled: 'ไม่สามารถแสดงผลแบบวงกลมกับสีกำหนดเองได้',
+  exp_bubble_size: 'ขนาด',
   exp_color_mode: 'รูปแบบการระบายสี',
   exp_color_stats: 'อิงตามสถิติ',
   exp_color_custom: 'ใช้สีระบุเอง',
@@ -289,6 +290,8 @@ export const th = {
 
   // Data Studio & Ingestion Hub
   hub_upload_success: 'อัปโหลดไฟล์สำเร็จ — พบข้อมูล {count} แถว',
+  hub_sheets_found: 'พบ {count} ชีตในไฟล์นี้',
+  hub_use_sheet: '✓ ใช้ชีตนี้',
   hub_read_failed: 'อ่านไฟล์ล้มเหลว: {msg}',
   hub_title: 'ศูนย์นำเข้าและจัดการข้อมูลระบาดวิทยา (Ingestion Hub)',
   hub_upload_desc: 'เลือกรูปแบบไฟล์ Excel/CSV ที่เตรียมไว้เพื่อเข้าสู่ระบบพล็อตสีและจัดกลุ่มช่วงเวลา',

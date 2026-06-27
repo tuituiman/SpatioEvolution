@@ -241,6 +241,9 @@ export interface DatasetMeta {
   rowCount: number
   keys: DataKeys
   loadedAt: Date
+  fileBytes?: Uint8Array
+  sheetNames?: string[]
+  selectedSheet?: string
 }
 
 export interface GlobalStats {
@@ -317,6 +320,7 @@ export interface AppState {
   mappingModalTab: 'upload' | 'mapping'
   geoMode: 'admin' | 'coordinate'
   pointStyle: 'cluster' | 'heatmap' | 'proportional'
+  bubbleScale: number
   baseMapStyle: 'dark' | 'street' | 'satellite'
   showBoundaries: boolean
   showBaseMap: boolean
@@ -434,6 +438,7 @@ export interface AppActions {
   setMappingModalTab: (tab: 'upload' | 'mapping') => void
   setGeoMode: (mode: 'admin' | 'coordinate') => void
   setPointStyle: (style: 'cluster' | 'heatmap' | 'proportional') => void
+  setBubbleScale: (scale: number) => void
   setBaseMapStyle: (style: 'dark' | 'street' | 'satellite') => void
   setShowBoundaries: (show: boolean) => void
   setShowBaseMap: (show: boolean) => void
@@ -607,6 +612,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   mappingModalTab: 'upload',
   geoMode: 'admin',
   pointStyle: 'cluster',
+  bubbleScale: 1.0,
   baseMapStyle: 'dark',
   showBoundaries: true,
   showBaseMap: true,
@@ -723,19 +729,23 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     const id = meta.id || crypto.randomUUID()
     const loadedAt = new Date()
     const currentIngestionMode = meta.ingestionMode || get().ingestionMode
-    const newMeta = {
+    const newMeta: DatasetMeta = {
+      id,
       fileName: meta.fileName,
       rowCount: meta.rowCount,
       keys: meta.keys,
-      loadedAt
+      loadedAt,
+      fileBytes: (meta as any).fileBytes,
+      sheetNames: (meta as any).sheetNames,
+      selectedSheet: (meta as any).selectedSheet,
     }
     set(s => {
       const idx = s.datasets.findIndex(d => d.id === id)
       let next = [...s.datasets]
       if (idx !== -1) {
-        next[idx] = { ...newMeta, id }
+        next[idx] = newMeta
       } else {
-        next.push({ ...newMeta, id })
+        next.push(newMeta)
       }
       return {
         rawRows: rows,
@@ -753,7 +763,10 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       rowCount: meta.rowCount,
       keys: meta.keys,
       ingestionMode: currentIngestionMode,
-      loadedAt
+      loadedAt,
+      fileBytes: (meta as any).fileBytes,
+      sheetNames: (meta as any).sheetNames,
+      selectedSheet: (meta as any).selectedSheet,
     }, retentionDays).catch(console.warn)
     saveUIState('activeDatasetId', id).catch(console.warn)
     get().refreshStorageUsage()
@@ -906,6 +919,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     getDebouncedSyncStats(get().syncStats)()
   },
   setPointStyle: (style) => set({ pointStyle: style }),
+  setBubbleScale: (scale) => set({ bubbleScale: scale }),
   setBaseMapStyle: (style) => set({ baseMapStyle: style }),
   setShowBoundaries: (show) => set({ showBoundaries: show }),
   setShowBaseMap: (show) => set({ showBaseMap: show }),
@@ -984,6 +998,9 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
           rowCount: ds.rowCount,
           keys: ds.keys,
           loadedAt: new Date(ds.loadedAt),
+          fileBytes: ds.fileBytes,
+          sheetNames: ds.sheetNames,
+          selectedSheet: ds.selectedSheet,
         })),
         dataKeys: latest.keys,
         ingestionMode: latest.ingestionMode,
@@ -1092,7 +1109,10 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
           fileName: d.fileName,
           rowCount: d.rowCount,
           keys: d.keys,
-          loadedAt: new Date(d.loadedAt)
+          loadedAt: new Date(d.loadedAt),
+          fileBytes: d.fileBytes,
+          sheetNames: d.sheetNames,
+          selectedSheet: d.selectedSheet,
         }))
       }))
       saveUIState('activeDatasetId', id).catch(console.warn)

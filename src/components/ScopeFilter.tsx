@@ -302,7 +302,7 @@ export function ScopeFilter() {
   }, [scope.region])
 
   return (
-    <div className="spatio-glass w-full">
+    <div className="spatio-glass w-full relative z-[50]">
       {/* Header / Toggle */}
       <button
         onClick={() => setIsOpen(o => !o)}

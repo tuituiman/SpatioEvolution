@@ -10,7 +10,8 @@ let _layerGroup: L.LayerGroup | null = null
 /** สร้าง Bubble Layer (Optimized: Single Pass + Centroid Cache) */
 export function mountBubbles(
   dictionary: AppState['dictionary'], dateKey: string, level: AppState['adminLevel'],
-  palette: string, scope: AppState['scope'], breaks?: number[], customColors?: string[]
+  palette: string, scope: AppState['scope'], breaks?: number[], customColors?: string[],
+  bubbleScale: number = 1.0
 ): void {
   const map = getMap()
   if (!map) return
@@ -65,7 +66,7 @@ export function mountBubbles(
     if (!centroid) return
 
     // 4. คำนวณขนาดและสร้าง Marker
-    const radius = Math.max(3, Math.sqrt(val / maxVal) * 40)
+    const radius = Math.max(3, Math.sqrt(val / maxVal) * 20 * bubbleScale)
     
     // Use active breaks and palette to color the bubble
     const fillColor = getColor(val, activeBreaks, palette, customColors)

@@ -33,7 +33,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: SidebarProps) {
-  const { datasets, activeDatasetId, rawRows, periods, isZenMode, palette, setPalette, globalBreaks, setGlobalBreaks, numClasses, setNumClasses, customColors, setCustomColors, isBreaksCustomized, resetBreaks, breaksStart, setBreaksStart, showZeroAreas, setShowZeroAreas, showLegendZeroRow, setShowLegendZeroRow, colorMode } = useAppStore()
+  const { datasets, activeDatasetId, rawRows, periods, isZenMode, palette, setPalette, globalBreaks, setGlobalBreaks, numClasses, setNumClasses, customColors, setCustomColors, isBreaksCustomized, resetBreaks, breaksStart, setBreaksStart, showZeroAreas, setShowZeroAreas, showLegendZeroRow, setShowLegendZeroRow, colorMode, displayMode, bubbleScale, setBubbleScale } = useAppStore()
   const { t } = useTranslation()
   const activeDataset = datasets.find(d => d.id === activeDatasetId) || datasets[datasets.length - 1]
   const [paletteOpen, setPaletteOpen] = useState(false)
@@ -62,8 +62,9 @@ export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: Sidebar
         )}
       </div>
 
-      {/* Nav Items */}
-      <nav className="py-3 px-2 space-y-1">
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col no-scrollbar">
+        {/* Nav Items */}
+        <nav className="py-3 px-2 space-y-1">
         {NAV_ITEMS_KEYS.map(item => (
           <button
             key={item.id}
@@ -207,6 +208,25 @@ export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: Sidebar
                 )}
               </div>
             </div>
+
+            {displayMode === 'bubble' && (
+              <div className="w-full flex items-center gap-2 mt-1 select-none animate-fade-in border-t border-slate-300/30 dark:border-slate-700/30 pt-2 pb-1">
+                <span className="text-[10px] text-slate-600 dark:text-slate-300 w-12 font-medium shrink-0">
+                  {t('exp_bubble_size')}:
+                </span>
+                <div className="flex-1 flex items-center pr-1.5 min-w-0">
+                  <input
+                    type="range"
+                    min="0.2"
+                    max="1.8"
+                    step="0.1"
+                    value={bubbleScale}
+                    onChange={(e) => setBubbleScale(parseFloat(e.target.value))}
+                    className="w-full flex-1 min-w-0 h-1 accent-indigo-500 cursor-pointer appearance-none bg-slate-300 dark:bg-slate-700 rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:shadow"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-col gap-1.5 mt-1">
               <div className="flex justify-between items-center pr-1">
@@ -424,6 +444,7 @@ export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: Sidebar
           </div>
         </div>
       )}
+    </div>
 
       {/* Collapse Toggle */}
       <div className="p-2 border-t border-spatio-border">

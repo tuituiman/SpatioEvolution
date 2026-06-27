@@ -49,6 +49,13 @@ export const MappingModal: React.FC = () => {
   const [localRows, setLocalRows] = useState<any[]>([])
   const [localColumns, setLocalColumns] = useState<string[]>([])
 
+  // Sheet selection states (for multi-sheet Excel files)
+  const [sheetNames, setSheetNames] = useState<string[]>([])
+  const [selectedSheet, setSelectedSheet] = useState<string>('')
+  const workbookRef = React.useRef<XLSX.WorkBook | null>(null)
+  const pendingFlowRef = React.useRef<FlowType>('static')
+  const fileBytesRef = React.useRef<Uint8Array | null>(null)
+
   // Column mapping states
   const [mapping, setMapping] = useState<DataKeys>({
     date: '', province: '', district: '', subdistrict: '', lat: '', lng: '', value: '', color: ''
@@ -69,38 +76,78 @@ export const MappingModal: React.FC = () => {
   useEffect(() => {
     if (isMappingOpen) {
       refreshStorageUsage().catch(console.warn)
-    }
-    if (isMappingOpen && rawRows.length > 0 && datasets.length > 0) {
-      const meta = datasets.find(d => d.id === activeDatasetId) || datasets[datasets.length - 1]
-      setActiveId(meta?.id || null)
-      setFileName(meta?.fileName || '')
-      setLocalRows(rawRows)
-      setLocalColumns(Object.keys(rawRows[0] || {}))
-      setMapping(dataKeys)
-      setUseDist(!!dataKeys.district)
-      setUseSub(!!dataKeys.subdistrict)
-      setUseVal(!!dataKeys.value)
-      setUseColor(!!dataKeys.color)
+      
+      if (rawRows.length > 0 && datasets.length > 0) {
+        const meta = datasets.find(d => d.id === activeDatasetId) || datasets[datasets.length - 1]
+        setActiveId(meta?.id || null)
+        setFileName(meta?.fileName || '')
+        setLocalRows(rawRows)
+        setLocalColumns(Object.keys(rawRows[0] || {}))
+        setMapping(dataKeys)
+        setUseDist(!!dataKeys.district)
+        setUseSub(!!dataKeys.subdistrict)
+        setUseVal(!!dataKeys.value)
+        setUseColor(!!dataKeys.color)
 
-      // Infer active flow based on ingestionMode and fields
-      if (ingestionMode === 'admin_static' || ingestionMode === 'coord_static') {
-        setActiveFlow('static')
-      } else if (!!dataKeys.date) {
-        // If it has date and is aggregated
-        if (rawRows[0] && Object.keys(rawRows[0]).includes(dataKeys.date)) {
-          // If date matches a key, it could be long format or line list
-          // Line listing typically has non-aggregated records, whereas dynamic is aggregated
-          // For UX simplicity, we default to linelist mapping if loaded from line list
-          setActiveFlow(dataKeys.value ? 'dynamic' : 'linelist')
-          setDynamicLayout('long')
+        // Infer active flow based on ingestionMode and fields
+        let flow: FlowType = 'static'
+        if (ingestionMode === 'admin_static' || ingestionMode === 'coord_static') {
+          setActiveFlow('static')
+          flow = 'static'
+        } else if (!!dataKeys.date) {
+          // If it has date and is aggregated
+          if (rawRows[0] && Object.keys(rawRows[0]).includes(dataKeys.date)) {
+            const f = dataKeys.value ? 'dynamic' : 'linelist'
+            setActiveFlow(f)
+            flow = f
+            setDynamicLayout('long')
+          }
+        } else {
+          // Wide format (Matrix) has no single date column mapped
+          setActiveFlow('dynamic')
+          flow = 'dynamic'
+          setDynamicLayout('wide')
+        }
+        pendingFlowRef.current = flow
+
+        // Restore sheet metadata & bytes if present
+        if (meta && 'sheetNames' in meta && Array.isArray((meta as any).sheetNames) && (meta as any).sheetNames.length > 1) {
+          setSheetNames((meta as any).sheetNames)
+          setSelectedSheet((meta as any).selectedSheet || (meta as any).sheetNames[0])
+        } else {
+          if (!workbookRef.current) {
+            setSheetNames([])
+            setSelectedSheet('')
+          }
+        }
+        if (meta && 'fileBytes' in meta && (meta as any).fileBytes) {
+          fileBytesRef.current = (meta as any).fileBytes
+          if (!workbookRef.current) {
+            try {
+              workbookRef.current = XLSX.read((meta as any).fileBytes, { type: 'array', cellDates: true })
+            } catch (e) {
+              console.warn('Failed to parse workbook from saved fileBytes:', e)
+            }
+          }
+        } else {
+          if (!workbookRef.current) {
+            fileBytesRef.current = null
+            workbookRef.current = null
+          }
         }
       } else {
-        // Wide format (Matrix) has no single date column mapped
-        setActiveFlow('dynamic')
-        setDynamicLayout('wide')
+        // No active dataset — clear states for a fresh upload
+        setLocalRows([])
+        setLocalColumns([])
+        setFileName('')
+        setActiveId(null)
+        setSheetNames([])
+        setSelectedSheet('')
+        workbookRef.current = null
+        fileBytesRef.current = null
       }
     }
-  }, [isMappingOpen, rawRows, dataKeys, ingestionMode, activeDatasetId, datasets])
+  }, [isMappingOpen])
 
   if (!isMappingOpen) return null
 
@@ -160,11 +207,45 @@ export const MappingModal: React.FC = () => {
     if (file) loadFile(file, flow)
   }
 
+  /** Parse a specific sheet from the stored workbook and populate state */
+  const processSheet = (workbook: XLSX.WorkBook, sheetName: string, flow: FlowType) => {
+    const sheet = workbook.Sheets[sheetName]
+    const rawJson: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' })
+
+    if (rawJson.length === 0) {
+      setLocalRows([])
+      setLocalColumns([])
+      setMapping({ date: '', province: '', district: '', subdistrict: '', lat: '', lng: '', value: '', color: '' })
+      setActiveFlow(flow)
+      setActiveId(null)
+      setMappingModalTab('mapping')
+      return
+    }
+
+    const cols = Object.keys(rawJson[0])
+    setLocalRows(rawJson)
+    setLocalColumns(cols)
+    setActiveFlow(flow)
+    setActiveId(null)
+    runAutoDetect(cols, flow)
+    setMappingModalTab('mapping')
+    notify('success', t('hub_upload_success', { count: rawJson.length.toLocaleString() }))
+  }
+
   const loadFile = (file: File, flow: FlowType) => {
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
       notify('error', t('exp_file_type_err'))
       return
     }
+
+    // Clear old file and sheet states immediately to avoid showing stale data in UI
+    setLocalRows([])
+    setLocalColumns([])
+    setMapping({ date: '', province: '', district: '', subdistrict: '', lat: '', lng: '', value: '', color: '' })
+    setActiveId(null)
+    setSheetNames([])
+    setSelectedSheet('')
+    workbookRef.current = null
 
     const flowLabel = flow === 'static'
       ? 'Static Map'
@@ -176,29 +257,31 @@ export const MappingModal: React.FC = () => {
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer)
+        fileBytesRef.current = data
         let workbook: XLSX.WorkBook
         if (file.name.toLowerCase().endsWith('.csv')) {
           workbook = readCsvToWorkbook(data)
         } else {
           workbook = XLSX.read(data, { type: 'array', cellDates: true })
         }
-        const sheetName = workbook.SheetNames[0]
-        const sheet = workbook.Sheets[sheetName]
-        const rawJson: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' })
 
-        if (rawJson.length === 0) {
-          throw new Error(language === 'th' ? 'ไม่พบข้อมูลในไฟล์ Excel' : 'No data found in spreadsheet')
-        }
-
-        const cols = Object.keys(rawJson[0])
-        setLocalRows(rawJson)
-        setLocalColumns(cols)
         setFileName(file.name)
-        setActiveFlow(flow)
-        setActiveId(null) // Reset activeId to ensure a new dataset is created rather than overwriting the active one
-        runAutoDetect(cols, flow)
-        setMappingModalTab('mapping')
-        notify('success', t('hub_upload_success', { count: rawJson.length.toLocaleString() }))
+
+        // If the workbook has multiple sheets, prompt user to select one
+        if (workbook.SheetNames.length > 1) {
+          workbookRef.current = workbook
+          pendingFlowRef.current = flow
+          setSheetNames(workbook.SheetNames)
+          setSelectedSheet(workbook.SheetNames[0])
+          // Don't auto-advance to mapping tab yet — wait for user to confirm sheet
+          setMappingModalTab('mapping')
+        } else {
+          // Single sheet — process immediately
+          workbookRef.current = null
+          setSheetNames([])
+          setSelectedSheet('')
+          processSheet(workbook, workbook.SheetNames[0], flow)
+        }
       } catch (err: any) {
         notify('error', t('hub_read_failed', { msg: err.message }))
       } finally {
@@ -256,7 +339,10 @@ export const MappingModal: React.FC = () => {
         rowCount: localRows.length,
         keys: mergedKeys,
         loadedAt: new Date(),
-        ingestionMode: calculatedMode
+        ingestionMode: calculatedMode,
+        fileBytes: fileBytesRef.current || undefined,
+        sheetNames: sheetNames.length > 0 ? sheetNames : undefined,
+        selectedSheet: selectedSheet || undefined,
       })
 
       clearCumulativeCache()
@@ -478,6 +564,9 @@ export const MappingModal: React.FC = () => {
     setLocalColumns([])
     setFileName('')
     setActiveId(null)
+    setSheetNames([])
+    setSelectedSheet('')
+    workbookRef.current = null
     setMappingModalTab('upload')
   }
 
@@ -777,6 +866,37 @@ export const MappingModal: React.FC = () => {
                     <span>{t('hub_choose_mode')}</span>
                   </button>
                 </div>
+
+                {/* Sheet Selector (multi-sheet Excel) */}
+                {sheetNames.length > 1 && (
+                  <div className="bg-amber-50 dark:bg-amber-500/5 border border-amber-400/30 dark:border-amber-500/20 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 animate-fade-in">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <FileSpreadsheet size={14} className="text-amber-500" />
+                      <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">
+                        {t('hub_sheets_found', { count: sheetNames.length })}
+                      </span>
+                    </div>
+                    <select
+                      value={selectedSheet}
+                      onChange={e => {
+                        const sheetName = e.target.value
+                        setSelectedSheet(sheetName)
+                        if (workbookRef.current) {
+                          try {
+                            processSheet(workbookRef.current, sheetName, pendingFlowRef.current)
+                          } catch (err) {
+                            console.error(err)
+                          }
+                        }
+                      }}
+                      className="flex-1 text-[11px] px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-600/40 rounded-lg text-spatio-text focus:ring-1 focus:ring-amber-400 focus:outline-none"
+                    >
+                      {sheetNames.map(name => (
+                        <option key={name} value={name}>{name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="spatio-card p-5 space-y-4 bg-spatio-surface border border-spatio-border">
                   <div className="flex items-center gap-2 border-b border-spatio-border pb-3">

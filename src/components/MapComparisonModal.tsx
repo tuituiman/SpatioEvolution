@@ -39,7 +39,8 @@ export const MapComparisonModal: React.FC<MapComparisonModalProps> = ({ isOpen, 
     isCumulative,
     timelineStartKey,
     timelineEndKey,
-    breaksStart
+    breaksStart,
+    bubbleScale
   } = useAppStore()
 
   const [count, setCount] = useState<2 | 4 | 8 | 12>(2)
@@ -433,7 +434,7 @@ export const MapComparisonModal: React.FC<MapComparisonModalProps> = ({ isOpen, 
       const centroid = getCentroid(f)
       if (!centroid) return
 
-      const radius = Math.max(3, Math.sqrt(val / maxVal) * 40)
+      const radius = Math.max(3, Math.sqrt(val / maxVal) * 20 * bubbleScale)
       const fillColor = getColor(val, globalBreaks, palette, customColors)
       const circle = L.circleMarker(centroid, {
         radius,

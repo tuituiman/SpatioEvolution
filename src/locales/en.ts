@@ -70,6 +70,7 @@ export const en: Record<TranslationKey, string> = {
   exp_vis_bubble: 'Bubble',
   exp_vis_coords: 'Coordinates',
   exp_vis_bubble_disabled: 'Cannot use bubble display in custom color mode',
+  exp_bubble_size: 'Size',
   exp_color_mode: 'Color Injection Mode',
   exp_color_stats: 'Statistical Scale',
   exp_color_custom: 'Custom Hex Color',
@@ -291,6 +292,8 @@ export const en: Record<TranslationKey, string> = {
 
   // Data Studio & Ingestion Hub
   hub_upload_success: 'Upload successful — Found {count} rows',
+  hub_sheets_found: '{count} sheets found',
+  hub_use_sheet: '✓ Use this sheet',
   hub_read_failed: 'Failed to read file: {msg}',
   hub_title: 'Ingestion & Data Hub',
   hub_upload_desc: 'Select Excel/CSV files to process, clean, geocode, and load onto the visual timeline.',

@@ -96,6 +96,7 @@ export function Explorer({ isExportMode = false }: { isExportMode?: boolean }) {
     setLoading, notify, mapReady, mapVersion, setAdminLevel, setIsMappingOpen, setMapReady,
     setGroupingMode, colorMode, setColorMode, setMappingModalTab,
     geoMode, setGeoMode, pointStyle, setPointStyle, baseMapStyle, setBaseMapStyle,
+    bubbleScale, setBubbleScale,
     showBoundaries, setShowBoundaries, showBaseMap, setShowBaseMap, showBorders, setShowBorders,
     showZeroAreas, setShowZeroAreas, isZenMode, setIsZenMode, includeEpiCurve,
     canvasWidgets, canvasSettings, selectedWidgetId, setSelectedWidgetId,
@@ -267,7 +268,7 @@ export function Explorer({ isExportMode = false }: { isExportMode?: boolean }) {
           } else {
             setPanePriority('bubble')
             clearChoroplethColors(scope, adminLevel)
-            mountBubbles(dictToUse, keyToUse, adminLevel, palette, scope, globalBreaks, customColors)
+            mountBubbles(dictToUse, keyToUse, adminLevel, palette, scope, globalBreaks, customColors, bubbleScale)
           }
         } else {
           maskChoropleth(scope, adminLevel)
@@ -277,7 +278,7 @@ export function Explorer({ isExportMode = false }: { isExportMode?: boolean }) {
         destroyBubbles()
       }
     }
-  }, [mapReady, geoLoaded, adminLevel, displayMode, scope, dictionary, periods, currentStep, isCumulative, globalBreaks, palette, customColors, selectedPeriods, colorMode, geoMode, pointStyle, baseMapStyle, showBaseMap, showBoundaries, showBorders, showZeroAreas, layoutTrigger, mapVersion])
+  }, [mapReady, geoLoaded, adminLevel, displayMode, scope, dictionary, periods, currentStep, isCumulative, globalBreaks, palette, customColors, selectedPeriods, colorMode, geoMode, pointStyle, baseMapStyle, showBaseMap, showBoundaries, showBorders, showZeroAreas, layoutTrigger, mapVersion, bubbleScale])
   // ── 2.5 Auto-sync Single Period Selection to Map Timeline ──
   useEffect(() => {
     if (selectedPeriods.size === 1) {
@@ -429,7 +430,7 @@ export function Explorer({ isExportMode = false }: { isExportMode?: boolean }) {
 
       {/* Control Panels */}
       <div className={clsx(
-        "absolute top-4 left-4 z-[1000] flex flex-col gap-2 w-[168px] transition-all duration-300",
+        "absolute top-4 left-4 z-[1010] flex flex-col gap-2 w-[168px] transition-all duration-300",
         isExportMode && "opacity-0 pointer-events-none -translate-x-12 scale-90"
       )}>
         {/* Collapsible Surrounding Control Panels */}
@@ -571,6 +572,8 @@ export function Explorer({ isExportMode = false }: { isExportMode?: boolean }) {
             >
               {t('exp_vis_bubble')}
             </button>
+
+
 
             {dataKeys.lat && dataKeys.lng && (
               <button

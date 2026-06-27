@@ -23,6 +23,9 @@ export interface PersistedDataset {
   loadedAt: Date
   rows: Record<string, unknown>[]     // rawRows ทั้งหมด
   retentionDays: number | null        // null = ไม่หมดอายุ
+  fileBytes?: Uint8Array
+  sheetNames?: string[]
+  selectedSheet?: string
 }
 
 export interface PersistedUIState {

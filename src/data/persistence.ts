@@ -24,6 +24,9 @@ export async function saveDataset(
     keys: DataKeys
     ingestionMode: IngestionMode
     loadedAt: Date
+    fileBytes?: Uint8Array
+    sheetNames?: string[]
+    selectedSheet?: string
   },
   retentionDays: number | null = null
 ): Promise<void> {
@@ -37,6 +40,9 @@ export async function saveDataset(
       loadedAt: meta.loadedAt,
       rows,
       retentionDays,
+      fileBytes: meta.fileBytes,
+      sheetNames: meta.sheetNames,
+      selectedSheet: meta.selectedSheet,
     })
   } catch (err) {
     // ตรวจจับ Storage Quota Exceeded — แจ้ง user แทน silent fail
