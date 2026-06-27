@@ -46,7 +46,7 @@ export const en: Record<TranslationKey, string> = {
   palette_reds: 'Reds',
   palette_oranges: 'Oranges',
   palette_greys: 'Greys',
-  about_desc1: 'SpatioEvolution Ver 03',
+  about_desc1: 'SpatioEvolution Ver 2.0',
   about_desc2: 'Spatiotemporal Epidemic Analysis System',
   about_desc3: 'All computations run locally on your device',
   about_desc4: 'No external network requests or data tracking',

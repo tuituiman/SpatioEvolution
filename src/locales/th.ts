@@ -44,7 +44,7 @@ export const th = {
   palette_reds: 'แดง (Reds)',
   palette_oranges: 'ส้ม (Oranges)',
   palette_greys: 'เทา (Greys)',
-  about_desc1: 'SpatioEvolution Ver 03',
+  about_desc1: 'SpatioEvolution Ver 2.0',
   about_desc2: 'ระบบวิเคราะห์ข้อมูลเชิงพื้นที่และเวลา',
   about_desc3: 'ข้อมูลทั้งหมดประมวลผลในเครื่องของคุณเท่านั้น',
   about_desc4: 'ไม่มีการส่งข้อมูลออกสู่ภายนอก',
