@@ -76,7 +76,7 @@ export function Settings() {
               {t('about_desc4')}
             </p>
           </div>
-          <div className="shrink-0 flex items-center justify-center p-2 rounded-xl bg-slate-800/5 dark:bg-slate-100/5 border border-slate-300/10 dark:border-slate-700/10 w-32 h-20">
+          <div className="shrink-0 flex items-center justify-center p-1 w-80 h-28">
             <img 
               src={`${import.meta.env.BASE_URL}SpatioEvolution_logo.png`} 
               alt="SpatioEvolution" 
