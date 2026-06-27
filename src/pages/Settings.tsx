@@ -77,7 +77,14 @@ export function Settings() {
                 {t('about_desc4')}
               </div>
               <div className="mt-4 text-[10px] opacity-85 whitespace-normal max-w-[260px] leading-normal font-medium">
-                {t('about_developed_by')}
+                {t('about_developed_by').includes(' : ') ? (
+                  <>
+                    <span className="font-bold text-spatio-text/90">{t('about_developed_by').split(' : ')[0]}:</span>
+                    <div className="mt-1">{t('about_developed_by').split(' : ')[1]}</div>
+                  </>
+                ) : (
+                  t('about_developed_by')
+                )}
               </div>
             </div>
           </div>

@@ -50,7 +50,7 @@ export const en: Record<TranslationKey, string> = {
   about_desc2: 'Spatiotemporal Epidemic Analysis System',
   about_desc3: 'All computations run locally on your device',
   about_desc4: 'No external network requests or data tracking',
-  about_developed_by: 'Developed by the Epidemiology and Public Health Emergency Response Group, Office of Disease Prevention and Control 1 Chiang Mai',
+  about_developed_by: 'Developed by : Epidemiology and Public Health Emergency Response Unit, Office of Disease Prevention and Control Region 1, Chiang Mai',
 
   // Explorer & Timeline Control
   exp_import_btn: 'Import Data',
