@@ -11,7 +11,7 @@ export function Settings() {
 
   return (
     <div className="p-6 h-full overflow-auto animate-fade-in bg-spatio-bg text-spatio-text transition-colors">
-      <div className="max-w-lg space-y-4">
+      <div className="max-w-2xl space-y-4">
 
         {/* Appearance Settings */}
         <div className="spatio-card bg-spatio-surface border border-spatio-border p-4 rounded-xl shadow-lg transition-colors">
@@ -66,17 +66,17 @@ export function Settings() {
         </div>
 
         {/* About */}
-        <div className="spatio-card bg-spatio-surface border border-spatio-border p-4 rounded-xl shadow-lg transition-colors flex items-center justify-between gap-4">
+        <div className="spatio-card bg-spatio-surface border border-spatio-border p-4 rounded-xl shadow-lg transition-colors flex items-center justify-between gap-6">
           <div className="flex-1">
             <h3 className="text-sm font-semibold mb-3">{t('settings_about')}</h3>
-            <p className="text-xs text-spatio-muted leading-relaxed">
+            <p className="text-xs text-spatio-muted leading-relaxed whitespace-nowrap">
               {t('about_desc1')}<br />
               {t('about_desc2')}<br />
               {t('about_desc3')}<br />
               {t('about_desc4')}
             </p>
           </div>
-          <div className="shrink-0 flex items-center justify-center p-1 w-80 h-28">
+          <div className="shrink-0 flex items-center justify-end w-[300px] h-[175px]">
             <img 
               src={`${import.meta.env.BASE_URL}SpatioEvolution_logo.png`} 
               alt="SpatioEvolution" 
