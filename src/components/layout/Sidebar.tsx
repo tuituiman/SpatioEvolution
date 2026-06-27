@@ -102,7 +102,7 @@ export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: Sidebar
       </nav>
 
       {/* Class Interval Settings (อันตภาคชั้น) */}
-      {!collapsed && rawRows.length > 0 && colorMode !== 'custom' && (
+      {!collapsed && rawRows.length > 0 && colorMode !== 'custom' && (displayMode === 'choropleth' || displayMode === 'bubble') && (
         <div className="mx-2.5 my-1 p-3 rounded-xl border border-slate-300/40 bg-slate-100/35 dark:bg-slate-950/60 dark:border-slate-800/35 backdrop-blur-md flex flex-col gap-3 select-none animate-fade-in shrink-0">
           <div className="flex items-center gap-1.5 pb-2 border-b border-slate-300/50 dark:border-slate-700/50">
             <Palette size={14} className="text-indigo-400" />

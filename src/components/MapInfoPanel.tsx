@@ -174,20 +174,23 @@ export function MapInfoPanel({ periodsReady, isColorOnly = false }: {
   periodsReady: boolean
   isColorOnly?: boolean
 }) {
-  const { palette, colorMode, globalBreaks } = useAppStore()
+  const { palette, colorMode, globalBreaks, displayMode } = useAppStore()
   const { t } = useTranslation()
   const breaks = globalBreaks
 
   const isCustomColor = colorMode === 'custom'
-  // color-only mode: ไม่แสดง legend (ไม่มี breaks) และไม่แสดงสถิติ
-  const showLegend = periodsReady && !isColorOnly && !isCustomColor && breaks.length > 0
-  const showStats = periodsReady && !isColorOnly
+  const isShowableMode = displayMode === 'choropleth' || displayMode === 'bubble'
 
-  if (!showLegend && !showStats && !isCustomColor) return null
+  // color-only mode: ไม่แสดง legend (ไม่มี breaks) และไม่แสดงสถิติ
+  const showLegend = periodsReady && !isColorOnly && !isCustomColor && breaks.length > 0 && isShowableMode
+  const showStats = periodsReady && !isColorOnly && isShowableMode
+  const showCustomColor = isCustomColor && isShowableMode
+
+  if (!showLegend && !showStats && !showCustomColor) return null
 
   return (
     <div className="flex flex-col gap-1.5 w-[180px]">
-      {isCustomColor && (
+      {showCustomColor && (
         <div className="spatio-glass p-2 min-w-[180px] w-[180px]">
           <span className="block text-[10px] text-spatio-muted uppercase tracking-wider mb-1.5">
             {t('info_legend')}
