@@ -29,6 +29,7 @@ export function parseDate(value: unknown): Date | null {
 
   return (
     _tryExcelSerial(s) ??
+    _tryYearStr(s) ??
     _tryISO(s) ??   // YYYY-MM-DD
     _tryMonthStr(s) ?? // YYYY-MM
     _tryThai(s) ??   // DD/MM/YYYY or DD-MM-YYYY (BE or CE)
@@ -211,12 +212,21 @@ function _validateDate(d: Date): Date | null {
 function _fromExcelSerial(n: number): Date | null {
   if (n > 20000) return _validateDate(new Date((n - 25569) * 86400000 + 43200000));
   if (n >= 1900 && n <= 2100) return new Date(n, 0, 1);
+  if (n >= 2443 && n <= 2643) return new Date(n - 543, 0, 1); // Support B.E. numeric years (1900 to 2100 CE)
   return null;
 }
 
 function _tryExcelSerial(s: string): Date | null {
   if (/^\d{5}$/.test(s)) return _fromExcelSerial(parseInt(s));
   return null;
+}
+
+function _tryYearStr(s: string): Date | null {
+  const m = s.match(/^(\d{4})$/);
+  if (!m) return null;
+  let y = parseInt(m[1]);
+  if (y > 2400) y -= 543;
+  return _validateDate(new Date(y, 0, 1));
 }
 
 function _tryISO(s: string): Date | null {

@@ -39,6 +39,26 @@ describe('parseDate', () => {
     expect(d).not.toBeNull()
     expect(d!.getFullYear()).toBe(2023)
   })
+
+  it('parses Thai Buddhist Era year-only (พ.ศ.) as string and number', () => {
+    const dStr = parseDate('2567')
+    expect(dStr).not.toBeNull()
+    expect(dStr!.getFullYear()).toBe(2024)
+
+    const dNum = parseDate(2567)
+    expect(dNum).not.toBeNull()
+    expect(dNum!.getFullYear()).toBe(2024)
+  })
+
+  it('parses Christian Era year-only (ค.ศ.) as string and number', () => {
+    const dStr = parseDate('2024')
+    expect(dStr).not.toBeNull()
+    expect(dStr!.getFullYear()).toBe(2024)
+
+    const dNum = parseDate(2024)
+    expect(dNum).not.toBeNull()
+    expect(dNum!.getFullYear()).toBe(2024)
+  })
 })
 
 describe('toDateKey', () => {
