@@ -225,6 +225,24 @@ describe('toDateKey()', () => {
     expect(toDateKey(testDate, 'yearly')).toBe('2024')
   })
 
+  it('quarterly → YYYY-Qn', () => {
+    expect(toDateKey(testDate, 'quarterly')).toBe('2024-Q1')
+  })
+
+  it('quarterly_fiscal → YYYY-FQn', () => {
+    // March 15, 2024 is Fiscal Q2 of FY 2024
+    expect(toDateKey(testDate, 'quarterly_fiscal')).toBe('2024-FQ2')
+    // October 15, 2024 is Fiscal Q1 of FY 2025
+    expect(toDateKey(d(2024, 10, 15), 'quarterly_fiscal')).toBe('2025-FQ1')
+  })
+
+  it('yearly_fiscal → YYYY-FY', () => {
+    // March 15, 2024 is FY 2024
+    expect(toDateKey(testDate, 'yearly_fiscal')).toBe('2024-FY')
+    // October 15, 2024 is FY 2025
+    expect(toDateKey(d(2024, 10, 15), 'yearly_fiscal')).toBe('2025-FY')
+  })
+
   it('weekly → ISO week format YYYY-Wnn', () => {
     const key = toDateKey(testDate, 'weekly')
     expect(key).toMatch(/^2024-W\d{2}$/)
@@ -329,6 +347,24 @@ describe('generatePeriods()', () => {
     const endWeekKey = toDateKey(end, 'weekly')
     expect(lastPeriod.key).toBe(endWeekKey)
   })
+
+  it('generates quarterly periods correctly', () => {
+    const start = d(2024, 1, 1)
+    const end = d(2024, 12, 31)
+    const periods = generatePeriods(start, end, 'quarterly', 'be', 'th')
+    expect(periods).toHaveLength(4)
+    expect(periods[0].key).toBe('2024-Q1')
+    expect(periods[3].key).toBe('2024-Q4')
+  })
+
+  it('generates yearly_fiscal periods correctly', () => {
+    const start = d(2023, 10, 1)
+    const end = d(2025, 9, 30)
+    const periods = generatePeriods(start, end, 'yearly_fiscal', 'be', 'th')
+    expect(periods).toHaveLength(2)
+    expect(periods[0].key).toBe('2024-FY')
+    expect(periods[1].key).toBe('2025-FY')
+  })
 })
 
 // ──────────────────────────────────────────
@@ -352,5 +388,26 @@ describe('getPeriodLabel()', () => {
   it('yearly label contains BE year', () => {
     const label = getPeriodLabel(testDate, 'yearly')
     expect(label).toContain('2567')
+  })
+
+  it('quarterly label formats correctly', () => {
+    const labelTH = getPeriodLabel(testDate, 'quarterly', 'be', 'th')
+    expect(labelTH).toBe('ไตรมาสที่ 1 พ.ศ. 2567')
+    const labelEN = getPeriodLabel(testDate, 'quarterly', 'ce', 'en')
+    expect(labelEN).toBe('Q1 C.E. 2024')
+  })
+
+  it('quarterly_fiscal label formats correctly', () => {
+    const labelTH = getPeriodLabel(testDate, 'quarterly_fiscal', 'be', 'th')
+    expect(labelTH).toBe('ไตรมาสที่ 2 (ปีงบฯ 2567)')
+    const labelEN = getPeriodLabel(testDate, 'quarterly_fiscal', 'ce', 'en')
+    expect(labelEN).toBe('Fiscal Q2 (2024)')
+  })
+
+  it('yearly_fiscal label formats correctly', () => {
+    const labelTH = getPeriodLabel(testDate, 'yearly_fiscal', 'be', 'th')
+    expect(labelTH).toBe('ปีงบประมาณ 2567')
+    const labelEN = getPeriodLabel(testDate, 'yearly_fiscal', 'ce', 'en')
+    expect(labelEN).toBe('Fiscal Year 2024')
   })
 })

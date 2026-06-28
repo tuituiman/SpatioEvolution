@@ -2,7 +2,7 @@ import { cleanName, expandMueang, findProvinceInProps, PROVINCE_CODE_MAP } from 
 import { getProvincesInZone, isPointInScope, resolveLocationByCoordinates } from './healthZones'
 import { registry } from './registry'
 import { locationResolver } from './locationResolver'
-import { parseDate, toDateKey, getPeriodLabel, generatePeriods } from './dateParser'
+import { parseDate, toDateKey, getPeriodLabel, generatePeriods, type DateMode } from './dateParser'
 import { useAppStore } from '../store/useAppStore'
 
 export type DateDictionary = Record<string, any>
@@ -99,7 +99,7 @@ export function isAreaInScope(p: string, a: string, scope: { province: string; r
 }
 
 /** 1. Build dictionary: แปลงทุกอย่างให้เป็นรหัสพื้นที่ */
-export async function buildDictionary(rows: any[], keys: any, mode: 'daily' | 'weekly' | 'weekly_epi' | 'monthly' | 'yearly') {
+export async function buildDictionary(rows: any[], keys: any, mode: DateMode) {
   const dict: DateDictionary = {}
   const periodsMap = new Map<string, PeriodBucket>()
 
@@ -115,7 +115,8 @@ export async function buildDictionary(rows: any[], keys: any, mode: 'daily' | 'w
 
     const key = toDateKey(d, mode)
     const yearFormat = useAppStore.getState().yearFormat || 'ce'
-    const label = getPeriodLabel(d, mode, yearFormat)
+    const language = useAppStore.getState().language || 'th'
+    const label = getPeriodLabel(d, mode, yearFormat, language)
 
     if (!periodsMap.has(key)) {
       periodsMap.set(key, { key, label, date: d })
@@ -196,7 +197,8 @@ export async function buildDictionary(rows: any[], keys: any, mode: 'daily' | 'w
     const minDate = sortedRawPeriods[0].date
     const maxDate = sortedRawPeriods[sortedRawPeriods.length - 1].date
     const yearFormat = useAppStore.getState().yearFormat || 'ce'
-    periods = generatePeriods(minDate, maxDate, mode, yearFormat)
+    const language = useAppStore.getState().language || 'th'
+    periods = generatePeriods(minDate, maxDate, mode, yearFormat, language)
   }
   return { dictionary: dict, periods }
 }
@@ -215,7 +217,8 @@ export async function buildWideDictionary(rows: any[], keys: any, timeCols: stri
     if (d && !isNaN(d.getTime())) {
       const key = toDateKey(d, 'weekly')
       const yearFormat = useAppStore.getState().yearFormat || 'ce'
-      const label = getPeriodLabel(d, 'weekly', yearFormat)
+      const language = useAppStore.getState().language || 'th'
+      const label = getPeriodLabel(d, 'weekly', yearFormat, language)
       periodsMap.set(col, { key: col, label, date: d })
     } else {
       // Handle week formatting W01, 2026-W05, 2567-W05
@@ -545,7 +548,7 @@ export function calculateGlobalStats(
   geoMode?: 'admin' | 'coordinate',
   rawRows?: any[],
   dataKeys?: any,
-  groupingMode?: 'daily' | 'weekly' | 'weekly_epi' | 'monthly' | 'yearly'
+  groupingMode?: DateMode
 ) {
   const allValues: number[] = []
   let gMax = 0

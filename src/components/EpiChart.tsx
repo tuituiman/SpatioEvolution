@@ -396,8 +396,32 @@ export const EpiChart: React.FC<{ isExportPreview?: boolean; config?: ChartWidge
       const mIdx = monthsFull.indexOf(parts[0])
       const mShort = mIdx !== -1 ? monthsShort[mIdx] : parts[0]
       return mShort + ' ' + (parts[1] ? parts[1].substring(2) : '')
+    } else if (groupingMode === 'quarterly') {
+      if (language === 'th') {
+        const match = l.match(/ไตรมาสที่ (\d) (พ\.ศ\.|ค\.ศ\.) (\d{4})/)
+        if (match) return `ต.${match[1]}/${match[3].substring(2)}`
+      } else {
+        const match = l.match(/Q(\d) (B\.E\.|C\.E\.) (\d{4})/)
+        if (match) return `Q${match[1]} '${match[3].substring(2)}`
+      }
+      return l
+    } else if (groupingMode === 'quarterly_fiscal') {
+      if (language === 'th') {
+        const match = l.match(/ไตรมาสที่ (\d) \(ปีงบฯ (\d{4})\)/)
+        if (match) return `ต.${match[1]} (งบ ${match[2].substring(2)})`
+      } else {
+        const match = l.match(/Fiscal Q(\d) \((\d{4})\)/)
+        if (match) return `Q${match[1]} (FY${match[2].substring(2)})`
+      }
+      return l
     } else if (groupingMode === 'yearly') {
-      return l.replace('ปี พ.ศ. ', '')
+      return l.replace('ปี พ.ศ. ', '').replace('Year ', '')
+    } else if (groupingMode === 'yearly_fiscal') {
+      if (language === 'th') {
+        return l.replace('ปีงบประมาณ ', 'งบฯ ')
+      } else {
+        return l.replace('Fiscal Year ', 'FY')
+      }
     }
     return l
   }

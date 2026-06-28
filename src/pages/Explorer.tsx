@@ -646,7 +646,10 @@ export function Explorer({ isExportMode = false }: { isExportMode?: boolean }) {
                   <option value="weekly_epi">{t('exp_time_weekly_epi')}</option>
                   <option value="weekly">{t('exp_time_weekly_iso')}</option>
                   <option value="monthly">{t('exp_time_monthly')}</option>
+                  <option value="quarterly">{t('exp_time_quarterly')}</option>
+                  <option value="quarterly_fiscal">{t('exp_time_quarterly_fiscal')}</option>
                   <option value="yearly">{t('exp_time_yearly')}</option>
+                  <option value="yearly_fiscal">{t('exp_time_yearly_fiscal')}</option>
                 </select>
                 <button onClick={() => setIsCumulative(!isCumulative)}
                   className={clsx('px-1.5 py-1 rounded-md text-[9px] font-bold border transition-all shrink-0 cursor-pointer text-center', isCumulative ? 'bg-spatio-primary border-spatio-primary text-white' : 'bg-spatio-surface border-spatio-border text-spatio-muted')}>

@@ -6,7 +6,7 @@
  * ✅ Pure functions — ไม่มี side effects
  */
 
-export type DateMode = 'daily' | 'weekly' | 'weekly_epi' | 'monthly' | 'yearly';
+export type DateMode = 'daily' | 'weekly' | 'weekly_epi' | 'monthly' | 'quarterly' | 'quarterly_fiscal' | 'yearly' | 'yearly_fiscal';
 
 // ──────────────────────────────────────────
 // Core Parser
@@ -45,7 +45,23 @@ export function toDateKey(date: Date, mode: DateMode): string {
     case 'weekly': return calcISOWeek(date);
     case 'weekly_epi': return calcThaiEpiWeek(date).label;
     case 'monthly': return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    case 'quarterly': return `${date.getFullYear()}-Q${Math.floor(date.getMonth() / 3) + 1}`;
+    case 'quarterly_fiscal': {
+      const m = date.getMonth();
+      const fYear = (m >= 9) ? date.getFullYear() + 1 : date.getFullYear();
+      let fQuarter = 1;
+      if (m >= 0 && m <= 2) fQuarter = 2;
+      else if (m >= 3 && m <= 5) fQuarter = 3;
+      else if (m >= 6 && m <= 8) fQuarter = 4;
+      else if (m >= 9 && m <= 11) fQuarter = 1;
+      return `${fYear}-FQ${fQuarter}`;
+    }
     case 'yearly': return `${date.getFullYear()}`;
+    case 'yearly_fiscal': {
+      const m = date.getMonth();
+      const fYear = (m >= 9) ? date.getFullYear() + 1 : date.getFullYear();
+      return `${fYear}-FY`;
+    }
     default: return _localDateStr(date);
   }
 }
@@ -124,14 +140,49 @@ export interface PeriodBucket {
 const MONTHS_FULL = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 const MONTHS_SHORT = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
-export function getPeriodLabel(date: Date, mode: DateMode, yearFormat: 'be' | 'ce' = 'be'): string {
+export function getPeriodLabel(date: Date, mode: DateMode, yearFormat: 'be' | 'ce' = 'be', language: 'th' | 'en' = 'th'): string {
   const year = yearFormat === 'be' ? date.getFullYear() + 543 : date.getFullYear();
   switch (mode) {
     case 'daily': return `${date.getDate()} ${MONTHS_FULL[date.getMonth()]} ${year}`;
     case 'weekly': return calcISOWeekBE(date, yearFormat);    // สัปดาห์ ISO ปี พ.ศ.
     case 'weekly_epi': return calcThaiEpiWeek(date, yearFormat).label;
     case 'monthly': return `${MONTHS_FULL[date.getMonth()]} ${year}`;
+    case 'quarterly': {
+      const q = Math.floor(date.getMonth() / 3) + 1;
+      if (language === 'th') {
+        const era = yearFormat === 'be' ? 'พ.ศ.' : 'ค.ศ.';
+        return `ไตรมาสที่ ${q} ${era} ${year}`;
+      } else {
+        const era = yearFormat === 'be' ? 'B.E.' : 'C.E.';
+        return `Q${q} ${era} ${year}`;
+      }
+    }
+    case 'quarterly_fiscal': {
+      const m = date.getMonth();
+      const fYear = (m >= 9) ? date.getFullYear() + 1 : date.getFullYear();
+      const displayYear = yearFormat === 'be' ? fYear + 543 : fYear;
+      let fQuarter = 1;
+      if (m >= 0 && m <= 2) fQuarter = 2;
+      else if (m >= 3 && m <= 5) fQuarter = 3;
+      else if (m >= 6 && m <= 8) fQuarter = 4;
+      else if (m >= 9 && m <= 11) fQuarter = 1;
+      if (language === 'th') {
+        return `ไตรมาสที่ ${fQuarter} (ปีงบฯ ${displayYear})`;
+      } else {
+        return `Fiscal Q${fQuarter} (${displayYear})`;
+      }
+    }
     case 'yearly': return yearFormat === 'be' ? `ปี พ.ศ. ${year}` : `Year ${year}`;
+    case 'yearly_fiscal': {
+      const m = date.getMonth();
+      const fYear = (m >= 9) ? date.getFullYear() + 1 : date.getFullYear();
+      const displayYear = yearFormat === 'be' ? fYear + 543 : fYear;
+      if (language === 'th') {
+        return `ปีงบประมาณ ${displayYear}`;
+      } else {
+        return `Fiscal Year ${displayYear}`;
+      }
+    }
   }
 }
 
@@ -149,7 +200,7 @@ export function getWeekRange(date: Date, type: 'iso' | 'epi'): string {
 }
 
 /** สร้าง array ของ PeriodBucket ครบทุกช่วง (ไม่มีรู) */
-export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode, yearFormat: 'be' | 'ce' = 'be'): PeriodBucket[] {
+export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode, yearFormat: 'be' | 'ce' = 'be', language: 'th' | 'en' = 'th'): PeriodBucket[] {
   const periods: PeriodBucket[] = [];
   const seen = new Set<string>();
   
@@ -172,9 +223,29 @@ export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode, 
   } else if (mode === 'monthly') {
     current.setDate(1);
     end.setDate(1);
-  } else if (mode === 'yearly') {
-    current.setMonth(0, 1);
-    end.setMonth(0, 1);
+  } else if (mode === 'quarterly' || mode === 'quarterly_fiscal') {
+    const currentQStart = Math.floor(current.getMonth() / 3) * 3;
+    current.setMonth(currentQStart, 1);
+    const endQStart = Math.floor(end.getMonth() / 3) * 3;
+    end.setMonth(endQStart, 1);
+  } else if (mode === 'yearly' || mode === 'yearly_fiscal') {
+    if (mode === 'yearly_fiscal') {
+      if (current.getMonth() >= 9) {
+        current.setMonth(9, 1);
+      } else {
+        current.setFullYear(current.getFullYear() - 1);
+        current.setMonth(9, 1);
+      }
+      if (end.getMonth() >= 9) {
+        end.setMonth(9, 1);
+      } else {
+        end.setFullYear(end.getFullYear() - 1);
+        end.setMonth(9, 1);
+      }
+    } else {
+      current.setMonth(0, 1);
+      end.setMonth(0, 1);
+    }
   }
 
   current.setHours(0, 0, 0, 0);
@@ -183,7 +254,7 @@ export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode, 
   while (current <= end) {
     const key = toDateKey(current, mode);
     if (!seen.has(key)) {
-      periods.push({ key, label: getPeriodLabel(current, mode, yearFormat), date: new Date(current) });
+      periods.push({ key, label: getPeriodLabel(current, mode, yearFormat, language), date: new Date(current) });
       seen.add(key);
     }
     // ขยับ
@@ -194,9 +265,15 @@ export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode, 
     } else if (mode === 'monthly') {
       current.setMonth(current.getMonth() + 1);
       current.setDate(1);
+    } else if (mode === 'quarterly' || mode === 'quarterly_fiscal') {
+      current.setMonth(current.getMonth() + 3);
+      current.setDate(1);
     } else if (mode === 'yearly') {
       current.setFullYear(current.getFullYear() + 1);
       current.setMonth(0, 1);
+    } else if (mode === 'yearly_fiscal') {
+      current.setFullYear(current.getFullYear() + 1);
+      current.setMonth(9, 1);
     }
   }
   return periods;

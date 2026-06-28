@@ -101,7 +101,10 @@ export const ChartInspector: React.FC<Props> = ({ widgetId }) => {
             groupingMode === 'daily' ? 'รายวัน' :
               groupingMode === 'weekly' ? 'รายสัปดาห์ (ISO)' :
                 groupingMode === 'weekly_epi' ? 'รายสัปดาห์ (EPI)' :
-                  groupingMode === 'monthly' ? 'รายเดือน' : 'รายปี'
+                  groupingMode === 'monthly' ? 'รายเดือน' :
+                    groupingMode === 'quarterly' ? 'รายไตรมาส' :
+                      groupingMode === 'quarterly_fiscal' ? 'รายไตรมาส (ปีงบประมาณ)' :
+                        groupingMode === 'yearly_fiscal' ? 'รายปีงบประมาณ' : 'รายปี'
           }</span></div>
           <div className="opacity-60">→ เปลี่ยนได้จากหน้า Explorer</div>
         </div>
