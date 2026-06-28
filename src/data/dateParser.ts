@@ -66,7 +66,7 @@ export interface ThaiEpiWeekInfo {
   startDate: Date;
 }
 
-export function calcThaiEpiWeek(date: Date): ThaiEpiWeekInfo {
+export function calcThaiEpiWeek(date: Date, yearFormat: 'be' | 'ce' = 'be'): ThaiEpiWeekInfo {
   const d = new Date(date); d.setHours(0, 0, 0, 0);
 
   const _start = (y: number) => {
@@ -87,8 +87,9 @@ export function calcThaiEpiWeek(date: Date): ThaiEpiWeekInfo {
   else { targetYear = year; targetStart = startThis; }
 
   const weekNum = Math.floor((d.getTime() - targetStart.getTime()) / 604800000) + 1;
+  const displayYear = yearFormat === 'be' ? targetYear + 543 : targetYear;
   return {
-    label: `${targetYear + 543}-W${String(weekNum).padStart(2, '0')}`,
+    label: `${displayYear}-W${String(weekNum).padStart(2, '0')}`,
     yearBE: targetYear + 543,
     weekNum,
     startDate: targetStart,
@@ -104,8 +105,9 @@ export function calcISOWeek(d: Date): string {
 }
 
 /** ISO Week key + label ปี พ.ศ. (ใช้แค่การแสดงผล, ไม่ใช้เป็น dict key) */
-export function calcISOWeekBE(d: Date): string {
+export function calcISOWeekBE(d: Date, yearFormat: 'be' | 'ce' = 'be'): string {
   const key = calcISOWeek(d);                 // e.g. "2024-W05"
+  if (yearFormat === 'ce') return key;
   const [year, week] = key.split('-');
   return `${parseInt(year) + 543}-${week}`;   // e.g. "2567-W05"
 }
@@ -122,14 +124,14 @@ export interface PeriodBucket {
 const MONTHS_FULL = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 const MONTHS_SHORT = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
-export function getPeriodLabel(date: Date, mode: DateMode): string {
-  const be = date.getFullYear() + 543;
+export function getPeriodLabel(date: Date, mode: DateMode, yearFormat: 'be' | 'ce' = 'be'): string {
+  const year = yearFormat === 'be' ? date.getFullYear() + 543 : date.getFullYear();
   switch (mode) {
-    case 'daily': return `${date.getDate()} ${MONTHS_FULL[date.getMonth()]} ${be}`;
-    case 'weekly': return calcISOWeekBE(date);    // สัปดาห์ ISO ปี พ.ศ.
-    case 'weekly_epi': return calcThaiEpiWeek(date).label;
-    case 'monthly': return `${MONTHS_FULL[date.getMonth()]} ${be}`;
-    case 'yearly': return `ปี พ.ศ. ${be}`;
+    case 'daily': return `${date.getDate()} ${MONTHS_FULL[date.getMonth()]} ${year}`;
+    case 'weekly': return calcISOWeekBE(date, yearFormat);    // สัปดาห์ ISO ปี พ.ศ.
+    case 'weekly_epi': return calcThaiEpiWeek(date, yearFormat).label;
+    case 'monthly': return `${MONTHS_FULL[date.getMonth()]} ${year}`;
+    case 'yearly': return yearFormat === 'be' ? `ปี พ.ศ. ${year}` : `Year ${year}`;
   }
 }
 
@@ -147,7 +149,7 @@ export function getWeekRange(date: Date, type: 'iso' | 'epi'): string {
 }
 
 /** สร้าง array ของ PeriodBucket ครบทุกช่วง (ไม่มีรู) */
-export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode): PeriodBucket[] {
+export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode, yearFormat: 'be' | 'ce' = 'be'): PeriodBucket[] {
   const periods: PeriodBucket[] = [];
   const seen = new Set<string>();
   
@@ -181,7 +183,7 @@ export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode):
   while (current <= end) {
     const key = toDateKey(current, mode);
     if (!seen.has(key)) {
-      periods.push({ key, label: getPeriodLabel(current, mode), date: new Date(current) });
+      periods.push({ key, label: getPeriodLabel(current, mode, yearFormat), date: new Date(current) });
       seen.add(key);
     }
     // ขยับ

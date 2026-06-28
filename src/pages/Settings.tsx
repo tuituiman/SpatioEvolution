@@ -6,6 +6,7 @@ export function Settings() {
   const {
     theme, setTheme,
     language, setLanguage,
+    yearFormat, setYearFormat,
     scaleStatsToRange, setScaleStatsToRange
   } = useAppStore()
 
@@ -38,6 +39,17 @@ export function Settings() {
               >
                 <option value="th">{t('lang_th')}</option>
                 <option value="en">{t('lang_en')}</option>
+              </select>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>{t('settings_year_format')}</span>
+              <select
+                className="spatio-input w-36 text-xs transition-colors"
+                value={yearFormat}
+                onChange={e => setYearFormat(e.target.value as any)}
+              >
+                <option value="ce">{t('year_format_ce')}</option>
+                <option value="be">{t('year_format_be')}</option>
               </select>
             </div>
           </div>

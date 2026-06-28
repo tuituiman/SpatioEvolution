@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { DateMode } from '../data/dateParser'
+import { getPeriodLabel, type DateMode } from '../data/dateParser'
 import { calculateGlobalStats, buildDictionary, buildStaticDictionary, buildWideDictionary, clearCumulativeCache } from '../data/aggregator'
 import { calcBreaks } from '../map/mapController'
 import { clearScopeCheckCache } from '../data/healthZones'
@@ -328,6 +328,8 @@ export interface AppState {
   isZenMode: boolean
   theme: 'dark' | 'light' | 'system'
   language: 'th' | 'en'
+  yearFormat: 'be' | 'ce'
+  setYearFormat: (v: 'be' | 'ce') => void
   exportTitle: string
   exportSubtitle: string
   watermarkPosition: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
@@ -458,6 +460,7 @@ export interface AppActions {
   setRetentionDays: (days: number | null) => void
   setTheme: (theme: 'dark' | 'light' | 'system') => void
   setLanguage: (lang: 'th' | 'en') => void
+  setYearFormat: (v: 'be' | 'ce') => void
   hydrateFromDB: () => Promise<void>
   clearAllData: () => Promise<void>
   clearAllDatasets: () => Promise<void>
@@ -598,6 +601,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   isWidgetInspectorOpen: false,
   theme: 'dark',
   language: 'th',
+  yearFormat: 'ce',
   globalStats: null,
   globalBreaks: [],
   isBreaksCustomized: false,
@@ -958,6 +962,19 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     saveUIState('language', language).catch(() => { })
   },
 
+  setYearFormat: (yearFormat) => {
+    set({ yearFormat })
+    saveUIState('yearFormat', yearFormat).catch(() => { })
+    const { periods, groupingMode } = get()
+    if (periods.length > 0) {
+      const updatedPeriods = periods.map(p => ({
+        ...p,
+        label: getPeriodLabel(p.date, groupingMode, yearFormat)
+      }))
+      set({ periods: updatedPeriods })
+    }
+  },
+
   refreshStorageUsage: async () => {
     const bytes = await estimateStorageUsage()
     set({ storageUsageBytes: bytes })
@@ -973,6 +990,9 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       const savedGroupingMode = (ui.groupingMode as DateMode) || get().groupingMode
       const savedGeoMode = (ui.geoMode as 'admin' | 'coordinate') || get().geoMode
       const savedActiveId = ui.activeDatasetId as string | undefined
+      const savedYearFormat = (ui.yearFormat as 'be' | 'ce') || get().yearFormat
+
+      set({ yearFormat: savedYearFormat })
 
       // โหลด dataset ที่ควรจะเป็น Active จริง
       let latest = datasets.find(d => d.id === savedActiveId)
@@ -1055,6 +1075,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       if (ui.scaleStatsToRange !== undefined) patch.scaleStatsToRange = ui.scaleStatsToRange as boolean
       if (ui.cropChartToRange !== undefined) patch.cropChartToRange = ui.cropChartToRange as boolean
       if (savedGeoMode) patch.geoMode = savedGeoMode
+      if (ui.yearFormat) patch.yearFormat = ui.yearFormat as AppState['yearFormat']
       if (Object.keys(patch).length > 0) set(patch)
 
       get().refreshStorageUsage()

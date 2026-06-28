@@ -233,7 +233,8 @@ export function DataManager() {
           d = new Date('2026-01-01')
         }
         const key = toDateKey(d, dateMode)
-        const label = getPeriodLabel(d, dateMode)
+        const yearFormat = useAppStore.getState().yearFormat || 'ce'
+        const label = getPeriodLabel(d, dateMode, yearFormat)
         if (!periodsMap.has(key)) {
           periodsMap.set(key, { key, label, date: d })
         }

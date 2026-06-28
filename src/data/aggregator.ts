@@ -114,7 +114,8 @@ export async function buildDictionary(rows: any[], keys: any, mode: 'daily' | 'w
     if (!d) return
 
     const key = toDateKey(d, mode)
-    const label = getPeriodLabel(d, mode)
+    const yearFormat = useAppStore.getState().yearFormat || 'ce'
+    const label = getPeriodLabel(d, mode, yearFormat)
 
     if (!periodsMap.has(key)) {
       periodsMap.set(key, { key, label, date: d })
@@ -194,7 +195,8 @@ export async function buildDictionary(rows: any[], keys: any, mode: 'daily' | 'w
   if (sortedRawPeriods.length > 0) {
     const minDate = sortedRawPeriods[0].date
     const maxDate = sortedRawPeriods[sortedRawPeriods.length - 1].date
-    periods = generatePeriods(minDate, maxDate, mode)
+    const yearFormat = useAppStore.getState().yearFormat || 'ce'
+    periods = generatePeriods(minDate, maxDate, mode, yearFormat)
   }
   return { dictionary: dict, periods }
 }
@@ -212,7 +214,8 @@ export async function buildWideDictionary(rows: any[], keys: any, timeCols: stri
     const d = parseDate(col)
     if (d && !isNaN(d.getTime())) {
       const key = toDateKey(d, 'weekly')
-      const label = getPeriodLabel(d, 'weekly')
+      const yearFormat = useAppStore.getState().yearFormat || 'ce'
+      const label = getPeriodLabel(d, 'weekly', yearFormat)
       periodsMap.set(col, { key: col, label, date: d })
     } else {
       // Handle week formatting W01, 2026-W05, 2567-W05
