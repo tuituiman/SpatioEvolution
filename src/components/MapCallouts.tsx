@@ -191,7 +191,7 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
         resolvedValue = lookupValue(periodSlice, nameLevelResolved, pCode, aCode, tCode)
       }
 
-      const id = adminLevel === 'province' ? pCode : adminLevel === 'district' ? aCode : tCode
+      const id = labelCode
       list.push({
         id,
         name: dispName,
