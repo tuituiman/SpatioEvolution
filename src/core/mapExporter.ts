@@ -232,6 +232,16 @@ export async function exportTimelineAsVideo(options: ExportVideoOptions): Promis
   const originalStep = store.currentStep
   const originalSelectedWidgetId = store.selectedWidgetId
   const originalSelectedLabelId = store.selectedLabelId
+  const originalTimelineStartKey = store.timelineStartKey
+  const originalTimelineEndKey = store.timelineEndKey
+  const originalCropChartToRange = store.cropChartToRange
+
+  // Set export scope boundaries in the store to update components (like EpiChart) during capture
+  const exportStartKey = store.periods[startIdx]?.key ?? null
+  const exportEndKey = store.periods[endIdx]?.key ?? null
+  store.setTimelineStartKey(exportStartKey)
+  store.setTimelineEndKey(exportEndKey)
+  store.setCropChartToRange(true)
 
   // Pause live playback
   store.setIsPlaying(false)
@@ -290,6 +300,9 @@ export async function exportTimelineAsVideo(options: ExportVideoOptions): Promis
     }
   } catch (err) {
     // Restore original state
+    store.setTimelineStartKey(originalTimelineStartKey)
+    store.setTimelineEndKey(originalTimelineEndKey)
+    store.setCropChartToRange(originalCropChartToRange)
     store.setCurrentStep(originalStep)
     if (wasPlaying) store.setIsPlaying(true)
     throw err
@@ -384,6 +397,9 @@ export async function exportTimelineAsVideo(options: ExportVideoOptions): Promis
   } catch (err) {
     recorder.stop()
     // Restore original state
+    store.setTimelineStartKey(originalTimelineStartKey)
+    store.setTimelineEndKey(originalTimelineEndKey)
+    store.setCropChartToRange(originalCropChartToRange)
     store.setCurrentStep(originalStep)
     if (wasPlaying) store.setIsPlaying(true)
     store.setSelectedWidgetId(originalSelectedWidgetId)
@@ -404,6 +420,9 @@ export async function exportTimelineAsVideo(options: ExportVideoOptions): Promis
   recorder.stop()
 
   // Restore original state
+  store.setTimelineStartKey(originalTimelineStartKey)
+  store.setTimelineEndKey(originalTimelineEndKey)
+  store.setCropChartToRange(originalCropChartToRange)
   store.setCurrentStep(originalStep)
   if (wasPlaying) store.setIsPlaying(true)
   store.setSelectedWidgetId(originalSelectedWidgetId)
