@@ -33,7 +33,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: SidebarProps) {
-  const { datasets, activeDatasetId, rawRows, periods, isZenMode, palette, setPalette, globalBreaks, setGlobalBreaks, numClasses, setNumClasses, customColors, setCustomColors, isBreaksCustomized, resetBreaks, breaksStart, setBreaksStart, showZeroAreas, setShowZeroAreas, showLegendZeroRow, setShowLegendZeroRow, colorMode, displayMode, bubbleScale, setBubbleScale, geoMode } = useAppStore()
+  const { datasets, activeDatasetId, rawRows, periods, isZenMode, palette, setPalette, globalBreaks, setGlobalBreaks, numClasses, setNumClasses, customColors, setCustomColors, isBreaksCustomized, resetBreaks, breaksStart, setBreaksStart, showZeroAreas, setShowZeroAreas, showLegendZeroRow, setShowLegendZeroRow, colorMode, displayMode, bubbleScale, setBubbleScale, geoMode, pointRadiusBuffer, setPointRadiusBuffer } = useAppStore()
   const { t } = useTranslation()
   const activeDataset = datasets.find(d => d.id === activeDatasetId) || datasets[datasets.length - 1]
   const [paletteOpen, setPaletteOpen] = useState(false)
@@ -366,6 +366,64 @@ export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: Sidebar
                   </React.Fragment>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Community Radius Settings for Coordinate Mode */}
+      {!collapsed && rawRows.length > 0 && geoMode === 'coordinate' && (
+        <div className="mx-2.5 my-1 p-3 rounded-xl border border-slate-300/40 bg-slate-100/35 dark:bg-slate-950/60 dark:border-slate-800/35 backdrop-blur-md flex flex-col gap-3 select-none animate-fade-in shrink-0">
+          <div className="flex items-center gap-1.5 pb-2 border-b border-slate-300/50 dark:border-slate-700/50">
+            <Palette size={14} className="text-blue-400" />
+            <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+              {t('settings_radius') || 'รัศมีรอบพิกัด'} / ขอบเขตชุมชน
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-1.5">
+              <div className="flex justify-between items-center text-[10px] font-medium text-slate-600 dark:text-slate-300">
+                <span>รัศมีขอบเขต:</span>
+                <span className="font-mono font-bold text-indigo-500">
+                  {pointRadiusBuffer > 0 ? `${pointRadiusBuffer.toLocaleString()} เมตร` : 'ปิด'}
+                </span>
+              </div>
+              <div className="flex items-center pr-1.5 min-w-0">
+                <input
+                  type="range"
+                  min="0"
+                  max="5000"
+                  step="100"
+                  value={pointRadiusBuffer}
+                  onChange={(e) => setPointRadiusBuffer(Number(e.target.value))}
+                  className="w-full flex-1 min-w-0 h-1.5 accent-indigo-500 cursor-pointer appearance-none bg-slate-300 dark:bg-slate-700 rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500 [&::-webkit-slider-thumb]:shadow"
+                />
+              </div>
+            </div>
+
+            {/* Quick Presets */}
+            <div className="grid grid-cols-4 gap-1 mt-1">
+              {[
+                { label: 'ปิด', value: 0 },
+                { label: '500m', value: 500 },
+                { label: '1km', value: 1000 },
+                { label: '2km', value: 2000 },
+              ].map((p) => (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => setPointRadiusBuffer(p.value)}
+                  className={clsx(
+                    "text-[9px] font-semibold py-1 rounded transition-colors select-none cursor-pointer border text-center",
+                    pointRadiusBuffer === p.value
+                      ? "bg-indigo-500 text-white border-indigo-500 shadow-sm font-bold"
+                      : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-800 hover:bg-black/5 dark:hover:bg-white/5"
+                  )}
+                >
+                  {p.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>

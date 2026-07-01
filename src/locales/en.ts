@@ -28,6 +28,7 @@ export const en: Record<TranslationKey, string> = {
   settings_title: 'Settings',
   settings_map_display: 'Map Display',
   settings_palette: 'Color Palette',
+  settings_radius: 'Point Radius',
   settings_admin_level: 'Boundary Level',
   settings_appearance: 'Appearance',
   settings_theme: 'Theme',

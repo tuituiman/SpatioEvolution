@@ -26,6 +26,7 @@ export const th = {
   settings_title: 'การตั้งค่า',
   settings_map_display: 'การแสดงผลแผนที่',
   settings_palette: 'ชุดสี (Palette)',
+  settings_radius: 'รัศมีพิกัด',
   settings_admin_level: 'ระดับขอบเขต',
   settings_appearance: 'การแสดงผล (Appearance)',
   settings_theme: 'ธีม (Theme)',

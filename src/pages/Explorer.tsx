@@ -98,6 +98,7 @@ export function Explorer({ isExportMode = false }: { isExportMode?: boolean }) {
     setGroupingMode, colorMode, setColorMode, setMappingModalTab,
     geoMode, setGeoMode, pointStyle, setPointStyle, baseMapStyle, setBaseMapStyle,
     bubbleScale, setBubbleScale,
+    pointRadiusBuffer,
     showBoundaries, setShowBoundaries, showBaseMap, setShowBaseMap, showBorders, setShowBorders,
     showZeroAreas, setShowZeroAreas, isZenMode, setIsZenMode, includeEpiCurve,
     canvasWidgets, canvasSettings, selectedWidgetId, setSelectedWidgetId,
@@ -279,7 +280,7 @@ export function Explorer({ isExportMode = false }: { isExportMode?: boolean }) {
         destroyBubbles()
       }
     }
-  }, [mapReady, geoLoaded, adminLevel, displayMode, scope, dictionary, periods, currentStep, isCumulative, globalBreaks, palette, customColors, selectedPeriods, colorMode, geoMode, pointStyle, baseMapStyle, showBaseMap, showBoundaries, showBorders, showZeroAreas, layoutTrigger, mapVersion, bubbleScale])
+  }, [mapReady, geoLoaded, adminLevel, displayMode, scope, dictionary, periods, currentStep, isCumulative, globalBreaks, palette, customColors, selectedPeriods, colorMode, geoMode, pointStyle, baseMapStyle, showBaseMap, showBoundaries, showBorders, showZeroAreas, layoutTrigger, mapVersion, bubbleScale, pointRadiusBuffer])
   // ── 2.5 Auto-sync Single Period Selection to Map Timeline ──
   useEffect(() => {
     if (selectedPeriods.size === 1) {

@@ -264,6 +264,7 @@ export interface AppState {
   geoMode: 'admin' | 'coordinate'
   pointStyle: 'cluster' | 'heatmap' | 'proportional'
   bubbleScale: number
+  pointRadiusBuffer: number
   baseMapStyle: 'dark' | 'street' | 'satellite'
   showBoundaries: boolean
   showBaseMap: boolean
@@ -384,6 +385,7 @@ export interface AppActions {
   setGeoMode: (mode: 'admin' | 'coordinate') => void
   setPointStyle: (style: 'cluster' | 'heatmap' | 'proportional') => void
   setBubbleScale: (scale: number) => void
+  setPointRadiusBuffer: (radius: number) => void
   setBaseMapStyle: (style: 'dark' | 'street' | 'satellite') => void
   setShowBoundaries: (show: boolean) => void
   setShowBaseMap: (show: boolean) => void
@@ -560,6 +562,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   geoMode: 'admin',
   pointStyle: 'cluster',
   bubbleScale: 1.0,
+  pointRadiusBuffer: 0,
   baseMapStyle: 'dark',
   showBoundaries: true,
   showBaseMap: true,
@@ -867,6 +870,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   },
   setPointStyle: (style) => set({ pointStyle: style }),
   setBubbleScale: (scale) => set({ bubbleScale: scale }),
+  setPointRadiusBuffer: (radius) => set({ pointRadiusBuffer: radius }),
   setBaseMapStyle: (style) => set({ baseMapStyle: style }),
   setShowBoundaries: (show) => set({ showBoundaries: show }),
   setShowBaseMap: (show) => set({ showBaseMap: show }),

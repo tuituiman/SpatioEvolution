@@ -189,7 +189,7 @@ export function mountPointLayer(): void {
   destroyPointLayer()
 
   const store = useAppStore.getState()
-  const { pointStyle, palette, globalBreaks, colorMode, customColors } = store
+  const { pointStyle, palette, globalBreaks, colorMode, customColors, pointRadiusBuffer } = store
 
   const sliceData = getActiveCoordinatesSlice()
   if (sliceData.length === 0) return
@@ -239,6 +239,21 @@ export function mountPointLayer(): void {
         direction: 'top',
         className: 'spatio-tooltip-leaflet border border-slate-700 bg-slate-900/90 rounded-lg p-2 shadow-2xl backdrop-blur-sm'
       })
+
+      // ── Draw Faded Community Radius Circle (in meters) ──
+      if (pointRadiusBuffer > 0) {
+        const bufferCircle = L.circle([pt.lat, pt.lng], {
+          pane: PANES.BUBBLE.name,
+          radius: pointRadiusBuffer,
+          fillColor: color,
+          fillOpacity: 0.15,
+          color: color,
+          weight: 1,
+          opacity: 0.4,
+          dashArray: '4, 4'
+        })
+        _pointLayerGroup!.addLayer(bufferCircle)
+      }
 
       _pointLayerGroup!.addLayer(marker)
     })
@@ -307,6 +322,21 @@ export function mountPointLayer(): void {
           <div class="text-[10px] text-slate-400 mt-0.5">พิกัดจริง: ${pt.lat.toFixed(4)}, ${pt.lng.toFixed(4)}</div>
         </div>
       `, { direction: 'top', className: 'spatio-tooltip-leaflet border border-slate-700 bg-slate-900/90 rounded-lg p-2' })
+
+      // ── Draw Faded Community Radius Circle (in meters) ──
+      if (pointRadiusBuffer > 0) {
+        const bufferCircle = L.circle([pt.lat, pt.lng], {
+          pane: PANES.BUBBLE.name,
+          radius: pointRadiusBuffer,
+          fillColor: '#3b82f6',
+          fillOpacity: 0.15,
+          color: '#3b82f6',
+          weight: 1,
+          opacity: 0.4,
+          dashArray: '4, 4'
+        })
+        _pointLayerGroup!.addLayer(bufferCircle)
+      }
 
       _pointLayerGroup!.addLayer(marker)
     })
