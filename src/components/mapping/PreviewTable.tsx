@@ -92,7 +92,7 @@ export const PreviewTable: React.FC<PreviewTableProps> = ({ previewType, setPrev
           <div className="bg-spatio-surface-alt border border-spatio-border p-4 rounded-xl space-y-2">
             <div className="flex items-center gap-2 text-xs font-bold text-spatio-text">
               <AlertCircle size={14} className="text-indigo-500 dark:text-indigo-400" />
-              <span>{isTh ? 'คำแนะนำในการเตรียมไฟล์ Excel/CSV (.xlsx, .xls, .csv):' : 'Guidelines for spreadsheet preparation (.xlsx, .xls, .csv):'}</span>
+              <span>{isTh ? 'คำแนะนำในการเตรียมไฟล์ Excel/CSV (.xlsx, .xls, .csv, .ods):' : 'Guidelines for spreadsheet preparation (.xlsx, .xls, .csv, .ods):'}</span>
             </div>
             <ul className="text-[11px] text-spatio-muted list-disc list-inside space-y-1 leading-relaxed">
               <li>{isTh ? 'ชื่อหัวคอลัมน์ในบรรทัดแรกต้องชัดเจน ห้ามมีเซลล์ที่ผสาน (Merge Cells)' : 'Column headers in the first row must be clear. No merged cells allowed.'}</li>

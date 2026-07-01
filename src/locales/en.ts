@@ -3,6 +3,7 @@ import type { TranslationKey } from './th'
 export const en: Record<TranslationKey, string> = {
   // Sidebar Navigation & Assist
   nav_explorer: 'Map Explorer',
+  nav_analysis: 'Spatial Analytics',
   nav_export: 'Export Studio',
   nav_settings: 'Settings',
   status_ready: 'Active Data Ready',
@@ -101,7 +102,7 @@ export const en: Record<TranslationKey, string> = {
   exp_time_range_end: 'End Period',
   exp_time_end_all: 'End',
   exp_time_range_reset: 'Reset Range',
-  exp_file_type_err: 'Supports only .xlsx, .xls, .csv files',
+  exp_file_type_err: 'Supports only .xlsx, .xls, .csv, .ods files',
   exp_reading_file: 'Reading file {name}...',
   exp_load_success: 'Loaded {count} rows — {periods} periods',
   exp_load_failed: 'Load failed: {msg}',
@@ -164,7 +165,7 @@ export const en: Record<TranslationKey, string> = {
   ana_corr_desc: 'Run statistical Pearson/Spearman test between any two columns.',
   ana_corr_suit: 'Enabled for datasets with at least 2 numerical columns.',
   ana_no_data_title: 'No active dataset loaded in analytics studio.',
-  ana_no_data_desc: 'Please go to the Import Data view and open an epidemiological sheet (.xlsx, .xls, .csv) to unlock spatial statistics toolkits.',
+  ana_no_data_desc: 'Please go to the Import Data view and open an epidemiological sheet (.xlsx, .xls, .csv, .ods) to unlock spatial statistics toolkits.',
   ana_profile_info: '💡 Six Spatial Analysis Profiles:',
   ana_profile1: '📊 1. Dynamic Area Counts',
   ana_profile1_desc: 'Spatial correlation and LISA hotspot changes over weekly periods.',

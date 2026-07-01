@@ -91,7 +91,7 @@ export const PreviewLightbox: React.FC<PreviewLightboxProps> = ({ previewType, o
           <div className="bg-slate-950/40 border border-slate-800/70 p-4 rounded-xl space-y-2">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
               <AlertCircle size={14} className="text-blue-400" />
-              <span>คำแนะนำในการเตรียมไฟล์ Excel/CSV (.xlsx, .xls, .csv):</span>
+              <span>คำแนะนำในการเตรียมไฟล์ Excel/CSV (.xlsx, .xls, .csv, .ods):</span>
             </div>
             <ul className="text-[11px] text-slate-450 list-disc list-inside space-y-1 leading-relaxed">
               <li>ชื่อหัวคอลัมน์ในบรรทัดแรกต้องชัดเจน ห้ามมีเซลล์ที่ผสาน (Merge Cells)</li>

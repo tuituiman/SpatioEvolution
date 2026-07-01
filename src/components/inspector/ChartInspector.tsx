@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
 import type { ChartWidgetConfig } from '../../store/useAppStore'
+import { getDateModeLabel } from '../../utils/dateGrouping'
 
 interface Props { widgetId: string }
 
@@ -97,15 +98,7 @@ export const ChartInspector: React.FC<Props> = ({ widgetId }) => {
 
         {/* Global Grouping Mode info */}
         <div className="text-[9px] text-slate-500 bg-slate-900/60 rounded p-2 space-y-0.5 mt-2">
-          <div>🗓 การจัดกลุ่ม: <span className="text-slate-300">{
-            groupingMode === 'daily' ? 'รายวัน' :
-              groupingMode === 'weekly' ? 'รายสัปดาห์ (ISO)' :
-                groupingMode === 'weekly_epi' ? 'รายสัปดาห์ (EPI)' :
-                  groupingMode === 'monthly' ? 'รายเดือน' :
-                    groupingMode === 'quarterly' ? 'รายไตรมาส' :
-                      groupingMode === 'quarterly_fiscal' ? 'รายไตรมาส (ปีงบประมาณ)' :
-                        groupingMode === 'yearly_fiscal' ? 'รายปีงบประมาณ' : 'รายปี'
-          }</span></div>
+          <div>🗓 การจัดกลุ่ม: <span className="text-slate-300">{getDateModeLabel(groupingMode)}</span></div>
           <div className="opacity-60">→ เปลี่ยนได้จากหน้า Explorer</div>
         </div>
       </CollapsibleSection>

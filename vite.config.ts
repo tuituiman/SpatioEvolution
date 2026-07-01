@@ -37,6 +37,9 @@ export default defineConfig({
             if (id.includes('leaflet')) {
               return 'leaflet-vendor'
             }
+            if (id.includes('xlsx')) {
+              return 'vendor-xlsx'
+            }
             if (id.includes('zustand')) {
               return 'zustand-vendor'
             }

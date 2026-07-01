@@ -8,7 +8,13 @@ import {
   RefreshCw, Download, ArrowRight, X, Sparkles,
   MapPin, Activity, Users, Settings, Trash2
 } from 'lucide-react'
-import * as XLSX from 'xlsx'
+let xlsxModule: any = null
+async function loadXlsx() {
+  if (!xlsxModule) {
+    xlsxModule = await import('xlsx')
+  }
+  return xlsxModule
+}
 import clsx from 'clsx'
 import { ExportModal } from './mapping/ExportModal'
 import { PreviewTable } from './mapping/PreviewTable'
@@ -52,7 +58,7 @@ export const MappingModal: React.FC = () => {
   // Sheet selection states (for multi-sheet Excel files)
   const [sheetNames, setSheetNames] = useState<string[]>([])
   const [selectedSheet, setSelectedSheet] = useState<string>('')
-  const workbookRef = React.useRef<XLSX.WorkBook | null>(null)
+  const workbookRef = React.useRef<any | null>(null)
   const pendingFlowRef = React.useRef<FlowType>('static')
   const fileBytesRef = React.useRef<Uint8Array | null>(null)
 
@@ -123,11 +129,13 @@ export const MappingModal: React.FC = () => {
         if (meta && 'fileBytes' in meta && (meta as any).fileBytes) {
           fileBytesRef.current = (meta as any).fileBytes
           if (!workbookRef.current) {
-            try {
-              workbookRef.current = XLSX.read((meta as any).fileBytes, { type: 'array', cellDates: true })
-            } catch (e) {
-              console.warn('Failed to parse workbook from saved fileBytes:', e)
-            }
+            loadXlsx().then(XLSX => {
+              try {
+                workbookRef.current = XLSX.read((meta as any).fileBytes, { type: 'array', cellDates: true })
+              } catch (e) {
+                console.warn('Failed to parse workbook from saved fileBytes:', e)
+              }
+            })
           }
         } else {
           if (!workbookRef.current) {
@@ -208,9 +216,9 @@ export const MappingModal: React.FC = () => {
   }
 
   /** Parse a specific sheet from the stored workbook and populate state */
-  const processSheet = (workbook: XLSX.WorkBook, sheetName: string, flow: FlowType) => {
+  const processSheet = (workbook: any, sheetName: string, flow: FlowType) => {
     const sheet = workbook.Sheets[sheetName]
-    const rawJson: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' })
+    const XLSX = xlsxModule; const rawJson: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' })
 
     if (rawJson.length === 0) {
       setLocalRows([])
@@ -232,8 +240,9 @@ export const MappingModal: React.FC = () => {
     notify('success', t('hub_upload_success', { count: rawJson.length.toLocaleString() }))
   }
 
-  const loadFile = (file: File, flow: FlowType) => {
-    if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
+  const loadFile = async (file: File, flow: FlowType) => {
+    const XLSX = await loadXlsx()
+    if (!file.name.match(/\.(xlsx|xls|csv|ods)$/i)) {
       notify('error', t('exp_file_type_err'))
       return
     }
@@ -258,9 +267,9 @@ export const MappingModal: React.FC = () => {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer)
         fileBytesRef.current = data
-        let workbook: XLSX.WorkBook
+        let workbook: any
         if (file.name.toLowerCase().endsWith('.csv')) {
-          workbook = readCsvToWorkbook(data)
+          workbook = readCsvToWorkbook(data, XLSX)
         } else {
           workbook = XLSX.read(data, { type: 'array', cellDates: true })
         }
@@ -388,6 +397,7 @@ export const MappingModal: React.FC = () => {
     setLoading(true, t('ex_exporting_msg'))
 
     try {
+      const XLSX = await loadXlsx()
       await locationResolver.init()
 
       const periodsMap = new Map<string, { key: string; label: string; date: Date }>()
@@ -686,7 +696,7 @@ export const MappingModal: React.FC = () => {
                       <span className="text-[9px] text-spatio-muted">{t('dm_drag_drop')}</span>
                       <label className="spatio-btn px-3 py-1 bg-spatio-surface border border-spatio-border hover:bg-emerald-600 hover:text-white text-[9px] text-spatio-text font-semibold rounded cursor-pointer transition-all">
                         {t('dm_select_file')}
-                        <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={e => handleFileChange(e, 'static')} />
+                        <input type="file" accept=".xlsx,.xls,.csv,.ods" className="hidden" onChange={e => handleFileChange(e, 'static')} />
                       </label>
                     </div>
                   </div>
@@ -722,7 +732,7 @@ export const MappingModal: React.FC = () => {
                       <span className="text-[9px] text-spatio-muted">{t('dm_drag_drop_dynamic')}</span>
                       <label className="spatio-btn px-3 py-1 bg-spatio-surface border border-spatio-border hover:bg-blue-600 hover:text-white text-[9px] text-spatio-text font-semibold rounded cursor-pointer transition-all">
                         {t('dm_select_file')}
-                        <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={e => handleFileChange(e, 'dynamic')} />
+                        <input type="file" accept=".xlsx,.xls,.csv,.ods" className="hidden" onChange={e => handleFileChange(e, 'dynamic')} />
                       </label>
                     </div>
                   </div>
@@ -757,7 +767,7 @@ export const MappingModal: React.FC = () => {
                       <span className="text-[9px] text-spatio-muted">{t('dm_drag_drop_linelist')}</span>
                       <label className="spatio-btn px-3 py-1 bg-spatio-surface border border-spatio-border hover:bg-indigo-600 hover:text-white text-[9px] text-spatio-text font-semibold rounded cursor-pointer transition-all">
                         {t('dm_select_file')}
-                        <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={e => handleFileChange(e, 'linelist')} />
+                        <input type="file" accept=".xlsx,.xls,.csv,.ods" className="hidden" onChange={e => handleFileChange(e, 'linelist')} />
                       </label>
                     </div>
                   </div>

@@ -200,7 +200,7 @@ export function Analysis() {
         <div className="space-y-2">
           <h2 className="text-lg font-black text-white">ยังไม่มีข้อมูลนำเข้าในระบบวิเคราะห์</h2>
           <p className="text-xs text-slate-400 max-w-md leading-relaxed">
-            กรุณาไปที่หน้านำเข้าข้อมูล [หน้าแรก] แล้วเปิดไฟล์ตารางระบาดวิทยา (.xlsx, .xls, .csv) เพื่อใช้งานสตูดิโอวิเคราะห์สถิติเชิงพื้นที่ขั้นสูง
+            กรุณาไปที่หน้านำเข้าข้อมูล [หน้าแรก] แล้วเปิดไฟล์ตารางระบาดวิทยา (.xlsx, .xls, .csv, .ods) เพื่อใช้งานสตูดิโอวิเคราะห์สถิติเชิงพื้นที่ขั้นสูง
           </p>
         </div>
 

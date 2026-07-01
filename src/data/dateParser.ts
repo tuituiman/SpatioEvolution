@@ -9,6 +9,31 @@
 export type DateMode = 'daily' | 'weekly' | 'weekly_epi' | 'monthly' | 'quarterly' | 'quarterly_fiscal' | 'yearly' | 'yearly_fiscal';
 
 // ──────────────────────────────────────────
+// System B.E. Calendar Detection & Core Helpers
+// ──────────────────────────────────────────
+
+/** ตรวจจับว่าเครื่องผู้ใช้ใช้ปฏิทิน พ.ศ. (Thai Buddhist Calendar) หรือไม่ */
+export const isSystemBE = new Date(2000, 0, 1).getFullYear() === 2543;
+
+/** ดึงปี ค.ศ. (C.E. Year) แบบเสถียร ไม่ขึ้นกับปฏิทินของเครื่อง */
+export function getFullYearCE(d: Date): number {
+  const yr = d.getFullYear();
+  return isSystemBE ? yr - 543 : yr;
+}
+
+/** ตั้งค่าปี ค.ศ. (C.E. Year) ลงใน Date object ให้เสถียร */
+export function setFullYearCE(d: Date, y: number): void {
+  const year = isSystemBE ? y + 543 : y;
+  d.setFullYear(year);
+}
+
+/** สร้าง Date object ใหม่ในระดับ Local Time โดยระบุปีเป็น ค.ศ. (C.E. Year) */
+export function createDateCE(y: number, m: number, d: number): Date {
+  const year = isSystemBE ? y + 543 : y;
+  return new Date(year, m, d);
+}
+
+// ──────────────────────────────────────────
 // Core Parser
 // ──────────────────────────────────────────
 
@@ -44,11 +69,11 @@ export function toDateKey(date: Date, mode: DateMode): string {
     case 'daily': return _localDateStr(date);
     case 'weekly': return calcISOWeek(date);
     case 'weekly_epi': return calcThaiEpiWeek(date).label;
-    case 'monthly': return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    case 'quarterly': return `${date.getFullYear()}-Q${Math.floor(date.getMonth() / 3) + 1}`;
+    case 'monthly': return `${getFullYearCE(date)}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    case 'quarterly': return `${getFullYearCE(date)}-Q${Math.floor(date.getMonth() / 3) + 1}`;
     case 'quarterly_fiscal': {
       const m = date.getMonth();
-      const fYear = (m >= 9) ? date.getFullYear() + 1 : date.getFullYear();
+      const fYear = (m >= 9) ? getFullYearCE(date) + 1 : getFullYearCE(date);
       let fQuarter = 1;
       if (m >= 0 && m <= 2) fQuarter = 2;
       else if (m >= 3 && m <= 5) fQuarter = 3;
@@ -56,10 +81,10 @@ export function toDateKey(date: Date, mode: DateMode): string {
       else if (m >= 9 && m <= 11) fQuarter = 1;
       return `${fYear}-FQ${fQuarter}`;
     }
-    case 'yearly': return `${date.getFullYear()}`;
+    case 'yearly': return `${getFullYearCE(date)}`;
     case 'yearly_fiscal': {
       const m = date.getMonth();
-      const fYear = (m >= 9) ? date.getFullYear() + 1 : date.getFullYear();
+      const fYear = (m >= 9) ? getFullYearCE(date) + 1 : getFullYearCE(date);
       return `${fYear}-FY`;
     }
     default: return _localDateStr(date);
@@ -86,14 +111,14 @@ export function calcThaiEpiWeek(date: Date, yearFormat: 'be' | 'ce' = 'be'): Tha
   const d = new Date(date); d.setHours(0, 0, 0, 0);
 
   const _start = (y: number) => {
-    const jan1 = new Date(y, 0, 1);
-    const firstWednesday = new Date(y, 0, 1 + ((3 - jan1.getDay() + 7) % 7));
+    const jan1 = createDateCE(y, 0, 1);
+    const firstWednesday = createDateCE(y, 0, 1 + ((3 - jan1.getDay() + 7) % 7));
     const s = new Date(firstWednesday);
     s.setDate(s.getDate() - 3); // Sunday of the week containing the first Wednesday
     return s;
   };
 
-  const year = d.getFullYear();
+  const year = getFullYearCE(d);
   const startThis = _start(year);
   const startNext = _start(year + 1);
 
@@ -115,9 +140,9 @@ export function calcThaiEpiWeek(date: Date, yearFormat: 'be' | 'ce' = 'be'): Tha
 export function calcISOWeek(d: Date): string {
   const date = new Date(d); date.setHours(0, 0, 0, 0);
   date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
-  const w1 = new Date(date.getFullYear(), 0, 4);
+  const w1 = createDateCE(getFullYearCE(date), 0, 4);
   const wn = 1 + Math.round(((date.getTime() - w1.getTime()) / 86400000 - 3 + (w1.getDay() + 6) % 7) / 7);
-  return `${date.getFullYear()}-W${String(wn).padStart(2, '0')}`;
+  return `${getFullYearCE(date)}-W${String(wn).padStart(2, '0')}`;
 }
 
 /** ISO Week key + label ปี พ.ศ. (ใช้แค่การแสดงผล, ไม่ใช้เป็น dict key) */
@@ -141,7 +166,7 @@ const MONTHS_FULL = ['มกราคม', 'กุมภาพันธ์', '�
 const MONTHS_SHORT = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
 export function getPeriodLabel(date: Date, mode: DateMode, yearFormat: 'be' | 'ce' = 'be', language: 'th' | 'en' = 'th'): string {
-  const year = yearFormat === 'be' ? date.getFullYear() + 543 : date.getFullYear();
+  const year = yearFormat === 'be' ? getFullYearCE(date) + 543 : getFullYearCE(date);
   switch (mode) {
     case 'daily': return `${date.getDate()} ${MONTHS_FULL[date.getMonth()]} ${year}`;
     case 'weekly': return calcISOWeekBE(date, yearFormat);    // สัปดาห์ ISO ปี พ.ศ.
@@ -159,7 +184,7 @@ export function getPeriodLabel(date: Date, mode: DateMode, yearFormat: 'be' | 'c
     }
     case 'quarterly_fiscal': {
       const m = date.getMonth();
-      const fYear = (m >= 9) ? date.getFullYear() + 1 : date.getFullYear();
+      const fYear = (m >= 9) ? getFullYearCE(date) + 1 : getFullYearCE(date);
       const displayYear = yearFormat === 'be' ? fYear + 543 : fYear;
       let fQuarter = 1;
       if (m >= 0 && m <= 2) fQuarter = 2;
@@ -175,7 +200,7 @@ export function getPeriodLabel(date: Date, mode: DateMode, yearFormat: 'be' | 'c
     case 'yearly': return yearFormat === 'be' ? `ปี พ.ศ. ${year}` : `Year ${year}`;
     case 'yearly_fiscal': {
       const m = date.getMonth();
-      const fYear = (m >= 9) ? date.getFullYear() + 1 : date.getFullYear();
+      const fYear = (m >= 9) ? getFullYearCE(date) + 1 : getFullYearCE(date);
       const displayYear = yearFormat === 'be' ? fYear + 543 : fYear;
       if (language === 'th') {
         return `ปีงบประมาณ ${displayYear}`;
@@ -233,13 +258,13 @@ export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode, 
       if (current.getMonth() >= 9) {
         current.setMonth(9, 1);
       } else {
-        current.setFullYear(current.getFullYear() - 1);
+        setFullYearCE(current, getFullYearCE(current) - 1);
         current.setMonth(9, 1);
       }
       if (end.getMonth() >= 9) {
         end.setMonth(9, 1);
       } else {
-        end.setFullYear(end.getFullYear() - 1);
+        setFullYearCE(end, getFullYearCE(end) - 1);
         end.setMonth(9, 1);
       }
     } else {
@@ -269,10 +294,10 @@ export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode, 
       current.setMonth(current.getMonth() + 3);
       current.setDate(1);
     } else if (mode === 'yearly') {
-      current.setFullYear(current.getFullYear() + 1);
+      setFullYearCE(current, getFullYearCE(current) + 1);
       current.setMonth(0, 1);
     } else if (mode === 'yearly_fiscal') {
-      current.setFullYear(current.getFullYear() + 1);
+      setFullYearCE(current, getFullYearCE(current) + 1);
       current.setMonth(9, 1);
     }
   }
@@ -284,14 +309,24 @@ export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode, 
 // ──────────────────────────────────────────
 function _validateDate(d: Date): Date | null {
   if (isNaN(d.getTime())) return null;
-  if (d.getFullYear() > 2400) d.setFullYear(d.getFullYear() - 543);
+  // เช็คและซ่อมเฉพาะถ้าค่าปีถูกบันทึกมาตรงๆ เป็น พ.ศ. (ในแบบ CE context)
+  const yr = d.getFullYear();
+  if (yr > 2400) {
+    d.setFullYear(yr - 543);
+  }
+  // ตรวจสอบและกรองปีที่กว้างเกินไป (เช่น พิมพ์ผิดเป็นปี 206 หรือ 2999)
+  const ceYear = getFullYearCE(d);
+  if (ceYear < 1900 || ceYear > 2100) {
+    return null;
+  }
   return d;
 }
 
 function _fromExcelSerial(n: number): Date | null {
-  if (n > 20000) return _validateDate(new Date((n - 25569) * 86400000 + 43200000));
-  if (n >= 1900 && n <= 2100) return new Date(n, 0, 1);
-  if (n >= 2443 && n <= 2643) return new Date(n - 543, 0, 1); // Support B.E. numeric years (1900 to 2100 CE)
+  // ใช้ createDateCE แทน new Date เพื่อเลี่ยง timezone/calendar bug
+  if (n > 20000) return _validateDate(createDateCE(1970, 0, 1 + Math.floor(n - 25569)));
+  if (n >= 1900 && n <= 2100) return createDateCE(n, 0, 1);
+  if (n >= 2443 && n <= 2643) return createDateCE(n - 543, 0, 1); // Support B.E. numeric years (1900 to 2100 CE)
   return null;
 }
 
@@ -305,7 +340,7 @@ function _tryYearStr(s: string): Date | null {
   if (!m) return null;
   let y = parseInt(m[1]);
   if (y > 2400) y -= 543;
-  return _validateDate(new Date(y, 0, 1));
+  return _validateDate(createDateCE(y, 0, 1));
 }
 
 function _tryISO(s: string): Date | null {
@@ -313,7 +348,7 @@ function _tryISO(s: string): Date | null {
   if (!m) return null;
   let y = parseInt(m[1]);
   if (y > 2400) y -= 543;
-  return _validateDate(new Date(y, parseInt(m[2]) - 1, parseInt(m[3])));
+  return _validateDate(createDateCE(y, parseInt(m[2]) - 1, parseInt(m[3])));
 }
 
 function _tryThai(s: string): Date | null {
@@ -322,7 +357,7 @@ function _tryThai(s: string): Date | null {
   let y = parseInt(m[3]);
   if (y < 100) y += 2000;
   if (y > 2400) y -= 543;
-  return _validateDate(new Date(y, parseInt(m[2]) - 1, parseInt(m[1])));
+  return _validateDate(createDateCE(y, parseInt(m[2]) - 1, parseInt(m[1])));
 }
 
 function _tryNative(s: string): Date | null {
@@ -335,13 +370,13 @@ function _tryMonthStr(s: string): Date | null {
   if (!m) return null;
   let y = parseInt(m[1]);
   if (y > 2400) y -= 543;
-  return _validateDate(new Date(y, parseInt(m[2]) - 1, 1));
+  return _validateDate(createDateCE(y, parseInt(m[2]) - 1, 1));
 }
 
 function _tryWeekStr(s: string): Date | null {
   const m = s.match(/^(\d{4})[-_]W(\d{1,2})$/i) || s.match(/^W(\d{1,2})$/i);
   if (!m) return null;
-  let y = new Date().getFullYear();
+  let y = getFullYearCE(new Date());
   let w = 1;
   if (m.length === 3) {
     y = parseInt(m[1]);
@@ -350,10 +385,10 @@ function _tryWeekStr(s: string): Date | null {
     w = parseInt(m[1]);
   }
   if (y > 2400) y -= 543;
-  const d = new Date(y, 0, 1 + (w - 1) * 7);
+  const d = createDateCE(y, 0, 1 + (w - 1) * 7);
   return _validateDate(d);
 }
 
 function _localDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return `${getFullYearCE(d)}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }

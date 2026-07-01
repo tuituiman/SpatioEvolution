@@ -1,6 +1,7 @@
 export const th = {
   // Sidebar Navigation & Assist
   nav_explorer: 'แผนที่เชิงพื้นที่',
+  nav_analysis: 'วิเคราะห์เชิงลึก',
   nav_export: 'ส่งออกผลลัพธ์',
   nav_settings: 'การตั้งค่า',
   status_ready: 'ข้อมูลพร้อมประมวลผล',
@@ -99,7 +100,7 @@ export const th = {
   exp_time_range_end: 'ช่วงเวลาสิ้นสุด',
   exp_time_end_all: 'สุดท้ายสุด',
   exp_time_range_reset: 'รีเซ็ตช่วงเวลา',
-  exp_file_type_err: 'รองรับเฉพาะไฟล์ .xlsx, .xls, .csv',
+  exp_file_type_err: 'รองรับเฉพาะไฟล์ .xlsx, .xls, .csv, .ods',
   exp_reading_file: 'กำลังอ่านไฟล์ {name}...',
   exp_load_success: 'โหลด {count} แถว — {periods} ช่วงเวลา',
   exp_load_failed: 'โหลดไฟล์ล้มเหลว: {msg}',
@@ -162,7 +163,7 @@ export const th = {
   ana_corr_desc: 'วิเคราะห์ Pearson/Spearman ระหว่างคู่คอลัมน์ดัชนี',
   ana_corr_suit: 'เปิดใช้เฉพาะข้อมูลที่มีคอลัมน์เชิงตัวเลขอย่างน้อย 2 คอลัมน์',
   ana_no_data_title: 'ยังไม่มีข้อมูลนำเข้าในระบบวิเคราะห์',
-  ana_no_data_desc: 'กรุณาไปที่หน้านำเข้าข้อมูล [หน้าแรก] แล้วเปิดไฟล์ตารางระบาดวิทยา (.xlsx, .xls, .csv) เพื่อใช้งานสตูดิโอวิเคราะห์สถิติเชิงพื้นที่ขั้นสูง',
+  ana_no_data_desc: 'กรุณาไปที่หน้านำเข้าข้อมูล [หน้าแรก] แล้วเปิดไฟล์ตารางระบาดวิทยา (.xlsx, .xls, .csv, .ods) เพื่อใช้งานสตูดิโอวิเคราะห์สถิติเชิงพื้นที่ขั้นสูง',
   ana_profile_info: '💡 รูปแบบข้อมูลวิเคราะห์เชิงพื้นที่ 6 โปรไฟล์:',
   ana_profile1: '📊 1. ตัวเลข รายพื้นที่ รายเวลา [Dynamic Area]',
   ana_profile1_desc: 'วิเคราะห์ดัชนี Moran\'s I & LISA แยกหมวดหมู่ความเร็วการระบาดเชิงสัปดาห์',

@@ -2,16 +2,9 @@ import { cleanName, expandMueang, findProvinceInProps, PROVINCE_CODE_MAP } from 
 import { getProvincesInZone, isPointInScope, resolveLocationByCoordinates } from './healthZones'
 import { registry } from './registry'
 import { locationResolver } from './locationResolver'
-import { parseDate, toDateKey, getPeriodLabel, generatePeriods, type DateMode } from './dateParser'
+import { parseDate, toDateKey, getPeriodLabel, generatePeriods, getFullYearCE, createDateCE, type DateMode, type PeriodBucket } from './dateParser'
 import { useAppStore } from '../store/useAppStore'
-
-export type DateDictionary = Record<string, any>
-
-export interface PeriodBucket {
-  key: string
-  label: string
-  date: Date
-}
+import { type DateDictionary } from '../types'
 
 export const STATIC_KEY = '__static__'
 
@@ -223,7 +216,7 @@ export async function buildWideDictionary(rows: any[], keys: any, timeCols: stri
     } else {
       // Handle week formatting W01, 2026-W05, 2567-W05
       const mWeek = col.match(/(\d{4})[-_]W(\d{1,2})/i) || col.match(/W(\d{1,2})/i)
-      let y = new Date().getFullYear()
+      let y = getFullYearCE(new Date())
       let w = 1
       if (mWeek) {
         if (mWeek.length === 3) {
@@ -234,7 +227,7 @@ export async function buildWideDictionary(rows: any[], keys: any, timeCols: stri
         }
       }
       if (y > 2400) y -= 543
-      const date = new Date(y, 0, 1 + (w - 1) * 7)
+      const date = createDateCE(y, 0, 1 + (w - 1) * 7)
       periodsMap.set(col, { key: col, label: col, date })
     }
   })
@@ -472,10 +465,10 @@ function getWeekNumber(d: Date, type: 'iso' | 'epi'): number {
   date.setHours(0, 0, 0, 0)
   if (type === 'iso') {
     date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7)
-    const week1 = new Date(date.getFullYear(), 0, 4)
+    const week1 = createDateCE(getFullYearCE(date), 0, 4)
     return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7)
   } else {
-    const startOfYear = new Date(date.getFullYear(), 0, 1)
+    const startOfYear = createDateCE(getFullYearCE(date), 0, 1)
     const days = Math.floor((date.getTime() - startOfYear.getTime()) / 86400000)
     return Math.floor((days + startOfYear.getDay()) / 7) + 1
   }

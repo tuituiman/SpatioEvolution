@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger'
 /**
  * persistence.ts — IndexedDB Save/Load API
  * SpatioEvolution Persistence Layer
@@ -47,14 +48,14 @@ export async function saveDataset(
   } catch (err) {
     // ตรวจจับ Storage Quota Exceeded — แจ้ง user แทน silent fail
     if (err instanceof DOMException && (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
-      console.warn('[Persistence] Storage quota exceeded!')
+      logger.warn('[Persistence] Storage quota exceeded!')
       // ส่ง custom event ให้ App รับและแสดง notification (หลีกเลี่ยง circular import)
       window.dispatchEvent(new CustomEvent('spatio:storage-quota', {
         detail: { message: '⚠️ พื้นที่จัดเก็บข้อมูลเต็ม กรุณาลบชุดข้อมูลเก่าออกในหน้า "จัดการข้อมูล" ก่อนบันทึกใหม่' }
       }))
       return
     }
-    console.warn('[Persistence] saveDataset failed:', err)
+    logger.warn('[Persistence] saveDataset failed:', err)
   }
 }
 
@@ -83,12 +84,12 @@ export async function loadAllDatasets(): Promise<PersistedDataset[]> {
     // ลบที่หมดอายุออก
     if (expired.length > 0) {
       await db.datasets.bulkDelete(expired)
-      console.log(`[Persistence] Removed ${expired.length} expired dataset(s)`)
+      logger.log(`[Persistence] Removed ${expired.length} expired dataset(s)`)
     }
 
     return valid
   } catch (err) {
-    console.warn('[Persistence] loadAllDatasets failed:', err)
+    logger.warn('[Persistence] loadAllDatasets failed:', err)
     return []
   }
 }
@@ -98,7 +99,7 @@ export async function deleteDataset(id: string): Promise<void> {
   try {
     await db.datasets.delete(id)
   } catch (err) {
-    console.warn('[Persistence] deleteDataset failed:', err)
+    logger.warn('[Persistence] deleteDataset failed:', err)
   }
 }
 
@@ -107,7 +108,7 @@ export async function clearAllDatasets(): Promise<void> {
   try {
     await db.datasets.clear()
   } catch (err) {
-    console.warn('[Persistence] clearAllDatasets failed:', err)
+    logger.warn('[Persistence] clearAllDatasets failed:', err)
   }
 }
 
@@ -121,10 +122,10 @@ export async function saveUIState(key: string, value: unknown): Promise<void> {
     await db.uiState.put({ key, value, updatedAt: new Date() })
   } catch (err) {
     if (err instanceof DOMException && (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
-      console.warn(`[Persistence] saveUIState(${key}): Storage quota exceeded`)
+      logger.warn(`[Persistence] saveUIState(${key}): Storage quota exceeded`)
       return
     }
-    console.warn(`[Persistence] saveUIState(${key}) failed:`, err)
+    logger.warn(`[Persistence] saveUIState(${key}) failed:`, err)
   }
 }
 
@@ -134,7 +135,7 @@ export async function loadUIState<T>(key: string): Promise<T | null> {
     const record = await db.uiState.get(key)
     return record ? (record.value as T) : null
   } catch (err) {
-    console.warn(`[Persistence] loadUIState(${key}) failed:`, err)
+    logger.warn(`[Persistence] loadUIState(${key}) failed:`, err)
     return null
   }
 }
@@ -149,7 +150,7 @@ export async function loadAllUIState(): Promise<Record<string, unknown>> {
     }
     return result
   } catch (err) {
-    console.warn('[Persistence] loadAllUIState failed:', err)
+    logger.warn('[Persistence] loadAllUIState failed:', err)
     return {}
   }
 }
@@ -159,7 +160,7 @@ export async function clearAllUIState(): Promise<void> {
   try {
     await db.uiState.clear()
   } catch (err) {
-    console.warn('[Persistence] clearAllUIState failed:', err)
+    logger.warn('[Persistence] clearAllUIState failed:', err)
   }
 }
 

@@ -21,6 +21,7 @@ import { registry } from '../data/registry'
 import { getWeekRange } from '../data/dateParser'
 import { EpiChart } from '../components/EpiChart'
 import type { ChartWidgetConfig } from '../store/useAppStore'
+import { DATE_MODE_CONFIG } from '../utils/dateGrouping'
 import {
   Upload, Play, Pause, ChevronLeft, ChevronRight,
   Layers, SkipBack, SkipForward, Settings2, Plus, Minus,
@@ -307,7 +308,7 @@ export function Explorer({ isExportMode = false }: { isExportMode?: boolean }) {
 
   // ── File Upload ──
   const handleFile = useCallback((file: File) => {
-    if (!file.name.match(/\.(xlsx|xls|csv)$/i)) { notify('error', t('exp_file_type_err')); return }
+    if (!file.name.match(/\.(xlsx|xls|csv|ods)$/i)) { notify('error', t('exp_file_type_err')); return }
     setLoading(true, t('exp_reading_file', { name: file.name }))
     const reader = new FileReader()
     reader.onload = async (e) => {
@@ -642,14 +643,9 @@ export function Explorer({ isExportMode = false }: { isExportMode?: boolean }) {
                     setLoading(false)
                   }
                 }} className="flex-1 appearance-none rounded-md px-1.5 py-1 bg-spatio-surface border border-spatio-border text-[10px] text-spatio-text focus:outline-none cursor-pointer">
-                  <option value="daily">{t('exp_time_daily')}</option>
-                  <option value="weekly_epi">{t('exp_time_weekly_epi')}</option>
-                  <option value="weekly">{t('exp_time_weekly_iso')}</option>
-                  <option value="monthly">{t('exp_time_monthly')}</option>
-                  <option value="quarterly">{t('exp_time_quarterly')}</option>
-                  <option value="quarterly_fiscal">{t('exp_time_quarterly_fiscal')}</option>
-                  <option value="yearly">{t('exp_time_yearly')}</option>
-                  <option value="yearly_fiscal">{t('exp_time_yearly_fiscal')}</option>
+                  {Object.entries(DATE_MODE_CONFIG).map(([value, config]) => (
+                    <option key={value} value={value}>{t(config.translationKey as any)}</option>
+                  ))}
                 </select>
                 <button onClick={() => setIsCumulative(!isCumulative)}
                   className={clsx('px-1.5 py-1 rounded-md text-[9px] font-bold border transition-all shrink-0 cursor-pointer text-center', isCumulative ? 'bg-spatio-primary border-spatio-primary text-white' : 'bg-spatio-surface border-spatio-border text-spatio-muted')}>

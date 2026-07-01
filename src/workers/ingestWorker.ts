@@ -125,7 +125,7 @@ self.onmessage = (e: MessageEvent) => {
       const bytes = new Uint8Array(fileData)
 
       if (fileName && fileName.toLowerCase().endsWith('.csv')) {
-        workbook = readCsvToWorkbook(bytes)
+        workbook = readCsvToWorkbook(bytes, XLSX)
       } else {
         workbook = XLSX.read(bytes, { type: 'array', cellDates: true })
       }

@@ -1,8 +1,6 @@
 /**
  * encoding.ts - Utility for detecting and decoding text encodings (specifically for Thai CSV files)
  */
-import * as XLSX from 'xlsx'
-
 export function detectEncoding(bytes: Uint8Array): string {
   // Check for UTF-8 BOM: 0xEF, 0xBB, 0xBF
   if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
@@ -75,7 +73,7 @@ export function detectEncoding(bytes: Uint8Array): string {
   return 'utf-8'
 }
 
-export function readCsvToWorkbook(bytes: Uint8Array): XLSX.WorkBook {
+export function readCsvToWorkbook(bytes: Uint8Array, XLSX: any): any {
   const encoding = detectEncoding(bytes)
   let cleanBytes = bytes
   if (encoding === 'utf-8' && bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {

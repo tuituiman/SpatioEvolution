@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger'
 import { create } from 'zustand'
 import { getPeriodLabel, type DateMode } from '../data/dateParser'
 import { calculateGlobalStats, buildDictionary, buildStaticDictionary, buildWideDictionary, clearCumulativeCache } from '../data/aggregator'
@@ -205,72 +206,14 @@ export const DEFAULT_WIDGET_CONFIGS: Record<CanvasWidget['type'], WidgetConfig> 
   } as LogoWidgetConfig,
 }
 
-export interface DataKeys {
-  date: string
-  province: string
-  district: string
-  subdistrict: string
-  lat: string
-  lng: string
-  value: string
-  color: string
-}
+import type {
+  DataKeys, Scope, PeriodBucket, SubdistrictCounts, DistrictData, ProvinceData,
+  DateDictionary, DatasetMeta, GlobalStats, StatsRecord
+} from '../types'
 
-export interface Scope {
-  region: string   // 'all' | '1'-'13'
-  province: string   // 'all' | ชื่อจังหวัด
-  district: string   // 'all' | ชื่ออำเภอ
-  subdistrict: string // 'all' | ชื่อตำบล
-}
-
-export interface PeriodBucket {
-  key: string
-  label: string
-  date: Date
-}
-
-// Dictionary structure
-export interface SubdistrictCounts { [subKey: string]: number }
-export interface DistrictData { _total: number; _color?: string; subdistricts: SubdistrictCounts }
-export interface ProvinceData { _total: number; _color?: string; districts: Record<string, DistrictData> }
-export type DateDictionary = Record<string, Record<string, ProvinceData>>
-
-export interface DatasetMeta {
-  id: string
-  fileName: string
-  rowCount: number
-  keys: DataKeys
-  loadedAt: Date
-  fileBytes?: Uint8Array
-  sheetNames?: string[]
-  selectedSheet?: string
-}
-
-export interface GlobalStats {
-  max: number
-  min: number
-  mean: number
-  median: number
-  p25: number
-  p75: number
-  count: number
-  sum: number
-  peak: {
-    value: number
-    location: string
-    date: string
-  }
-}
-
-export interface StatsRecord {
-  min: number
-  max: number
-  mean: number
-  median: number
-  p25: number
-  p75: number
-  maxAreas: string[]
-  totalCount: number
+export type {
+  DataKeys, Scope, PeriodBucket, SubdistrictCounts, DistrictData, ProvinceData,
+  DateDictionary, DatasetMeta, GlobalStats, StatsRecord
 }
 
 // ──────────────────────────────────────────
@@ -771,8 +714,8 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       fileBytes: (meta as any).fileBytes,
       sheetNames: (meta as any).sheetNames,
       selectedSheet: (meta as any).selectedSheet,
-    }, retentionDays).catch(console.warn)
-    saveUIState('activeDatasetId', id).catch(console.warn)
+    }, retentionDays).catch(logger.warn)
+    saveUIState('activeDatasetId', id).catch(logger.warn)
     get().refreshStorageUsage()
   },
 
@@ -1048,13 +991,13 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
           }
         }
       } catch (buildErr) {
-        console.warn('[Store] hydrateFromDB: rebuild dictionary failed:', buildErr)
+        logger.warn('[Store] hydrateFromDB: rebuild dictionary failed:', buildErr)
       }
 
       if (result) {
         set({ dictionary: result.dictionary, periods: result.periods, currentStep: 0 })
         get().syncStats()
-        console.log(`[Store] Rebuilt ${result.periods.length} period(s) from hydrated data`)
+        logger.log(`[Store] Rebuilt ${result.periods.length} period(s) from hydrated data`)
       }
 
       // Apply saved UI state
@@ -1079,9 +1022,9 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       if (Object.keys(patch).length > 0) set(patch)
 
       get().refreshStorageUsage()
-      console.log(`[Store] Hydrated ${datasets.length} dataset(s) from IndexedDB`)
+      logger.log(`[Store] Hydrated ${datasets.length} dataset(s) from IndexedDB`)
     } catch (err) {
-      console.warn('[Store] hydrateFromDB failed:', err)
+      logger.warn('[Store] hydrateFromDB failed:', err)
     }
   },
 
@@ -1136,7 +1079,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
           selectedSheet: d.selectedSheet,
         }))
       }))
-      saveUIState('activeDatasetId', id).catch(console.warn)
+      saveUIState('activeDatasetId', id).catch(logger.warn)
 
       // Rebuild dictionary + periods
       const ui = await loadAllUIState()
@@ -1160,7 +1103,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
           }
         }
       } catch (buildErr) {
-        console.warn('[Store] loadDatasetById: rebuild dictionary failed:', buildErr)
+        logger.warn('[Store] loadDatasetById: rebuild dictionary failed:', buildErr)
       }
 
       if (result) {
@@ -1172,7 +1115,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       get().refreshStorageUsage()
       get().notify('success', `โหลดข้อมูลไฟล์ "${ds.fileName}" เข้าสู่แผนที่เรียบร้อยแล้ว!`)
     } catch (err) {
-      console.warn('[Store] loadDatasetById failed:', err)
+      logger.warn('[Store] loadDatasetById failed:', err)
       get().notify('error', 'ไม่สามารถโหลดข้อมูลชุดนี้ได้')
     }
   },
@@ -1195,7 +1138,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
           globalBreaks: [],
           activeDatasetId: null,
         })
-        saveUIState('activeDatasetId', null).catch(console.warn)
+        saveUIState('activeDatasetId', null).catch(logger.warn)
       } else if (id === currentActiveId || get().rawRows.length === 0) {
         const sortedRemaining = [...remaining].sort((a, b) => new Date(b.loadedAt).getTime() - new Date(a.loadedAt).getTime())
         const newLatest = sortedRemaining[0]
@@ -1204,7 +1147,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
 
       get().notify('success', 'ลบข้อมูลสำเร็จ')
     } catch (err) {
-      console.warn('[Store] deleteDatasetById failed:', err)
+      logger.warn('[Store] deleteDatasetById failed:', err)
       get().notify('error', 'ไม่สามารถลบข้อมูลนี้ได้')
     }
   },
@@ -1223,11 +1166,11 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         globalBreaks: [],
         activeDatasetId: null,
       })
-      saveUIState('activeDatasetId', null).catch(console.warn)
+      saveUIState('activeDatasetId', null).catch(logger.warn)
       get().refreshStorageUsage()
       get().notify('success', 'ลบข้อมูลทั้งหมดเรียบร้อยแล้ว')
     } catch (err) {
-      console.warn('[Store] clearAllDatasets failed:', err)
+      logger.warn('[Store] clearAllDatasets failed:', err)
       get().notify('error', 'ไม่สามารถลบข้อมูลทั้งหมดได้')
     }
   },

@@ -7,7 +7,13 @@ import { useAppStore, type DataKeys } from '../../../store/useAppStore'
 import { locationResolver } from '../../../data/locationResolver'
 import { parseDate, toDateKey, getPeriodLabel, type DateMode } from '../../../data/dateParser'
 import { buildDictionary, buildStaticDictionary, buildWideDictionary, clearCumulativeCache } from '../../../data/aggregator'
-import * as XLSX from 'xlsx'
+let xlsxModule: any = null
+async function loadXlsx() {
+  if (!xlsxModule) {
+    xlsxModule = await import('xlsx')
+  }
+  return xlsxModule
+}
 import { readCsvToWorkbook } from '../../../data/encoding'
 
 export type FlowType = 'static' | 'dynamic' | 'linelist'
@@ -196,9 +202,10 @@ export function useMappingState(): MappingState {
   }
 
   // ── File Loading ──
-  const loadFile = (file: File, flow: FlowType) => {
-    if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
-      notify('error', 'รองรับเฉพาะไฟล์ .xlsx, .xls, .csv')
+  const loadFile = async (file: File, flow: FlowType) => {
+    const XLSX = await loadXlsx()
+    if (!file.name.match(/\.(xlsx|xls|csv|ods)$/i)) {
+      notify('error', 'รองรับเฉพาะไฟล์ .xlsx, .xls, .csv, .ods')
       return
     }
 
@@ -207,9 +214,9 @@ export function useMappingState(): MappingState {
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer)
-        let workbook: XLSX.WorkBook
+        let workbook: any
         if (file.name.toLowerCase().endsWith('.csv')) {
-          workbook = readCsvToWorkbook(data)
+          workbook = readCsvToWorkbook(data, XLSX)
         } else {
           workbook = XLSX.read(data, { type: 'array', cellDates: true })
         }
@@ -339,6 +346,7 @@ export function useMappingState(): MappingState {
     setLoading(true, 'กำลังประมวลผลจัดกลุ่มข้อมูลเพื่อดาวน์โหลด Excel...')
 
     try {
+      const XLSX = await loadXlsx()
       await locationResolver.init()
 
       const periodsMap = new Map<string, { key: string; label: string; date: Date }>()

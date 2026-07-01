@@ -87,7 +87,7 @@ const FlowCard: React.FC<FlowCardProps> = ({
         <span className="text-[9px] text-slate-400">ลากไฟล์มาวาง หรือ</span>
         <label className={`spatio-btn px-3 py-1 bg-slate-800 ${c.hoverBg} hover:text-white text-[9px] font-semibold rounded cursor-pointer transition-all`}>
           เลือกไฟล์
-          <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={e => handleFileChange(e, flow)} />
+          <input type="file" accept=".xlsx,.xls,.csv,.ods" className="hidden" onChange={e => handleFileChange(e, flow)} />
         </label>
       </div>
     </div>

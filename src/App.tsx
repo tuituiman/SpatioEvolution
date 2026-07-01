@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { Sidebar } from './components/layout/Sidebar'
 import { Explorer }    from './pages/Explorer'
-import { Analysis }    from './pages/Analysis'
-import { ExportStudio } from './pages/ExportStudio'
 import { Settings }    from './pages/Settings'
 import { locationResolver } from './data/locationResolver'
 import { useAppStore } from './store/useAppStore'
+
+const Analysis = lazy(() => import('./pages/Analysis').then(m => ({ default: m.Analysis })))
+const ExportStudio = lazy(() => import('./pages/ExportStudio').then(m => ({ default: m.ExportStudio })))
 
 export type PageId = 'explorer' | 'analysis' | 'export' | 'settings'
 
@@ -60,15 +61,17 @@ export default function App() {
 
       {/* Main Content Area — ไม่มี TopBar */}
       <main className="flex-1 overflow-hidden relative min-w-0">
-        {/* Keep Explorer mounted for export so that map can be captured */}
-        {(activePage === 'explorer' || activePage === 'export') && (
-          <div className="w-full h-full relative">
-            <Explorer isExportMode={activePage === 'export'} />
-            {activePage === 'export' && <ExportStudio />}
-          </div>
-        )}
-        {activePage === 'analysis' && <Analysis />}
-        {activePage === 'settings' && <Settings />}
+        <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-sm font-semibold text-spatio-muted">Loading...</div>}>
+          {/* Keep Explorer mounted for export so that map can be captured */}
+          {(activePage === 'explorer' || activePage === 'export') && (
+            <div className="w-full h-full relative">
+              <Explorer isExportMode={activePage === 'export'} />
+              {activePage === 'export' && <ExportStudio />}
+            </div>
+          )}
+          {activePage === 'analysis' && <Analysis />}
+          {activePage === 'settings' && <Settings />}
+        </Suspense>
       </main>
     </div>
   )
