@@ -289,7 +289,7 @@ export function getDecimalPlaces(v: number): number {
 }
 
 export function calcBreaks(values: number[], numClasses: number = 5): number[] {
-  let defaultBreaks = [1, 5, 10, 50, 100, 500, 1000, 5000]
+  const defaultBreaks = [1, 5, 10, 50, 100, 500, 1000, 5000]
   const targetLen = numClasses - 1
   if (values.length === 0) return defaultBreaks.slice(0, targetLen)
   const sorted = [...values].filter(v => v > 0).sort((a, b) => a - b)

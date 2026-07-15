@@ -229,8 +229,8 @@ export function generatePeriods(startDate: Date, endDate: Date, mode: DateMode, 
   const periods: PeriodBucket[] = [];
   const seen = new Set<string>();
   
-  let current = new Date(startDate); current.setHours(0, 0, 0, 0);
-  let end = new Date(endDate); end.setHours(23, 59, 59, 999);
+  const current = new Date(startDate); current.setHours(0, 0, 0, 0);
+  const end = new Date(endDate); end.setHours(23, 59, 59, 999);
 
   // Align dates to the start of their respective periods to ensure boundaries are inclusive
   if (mode === 'weekly') {

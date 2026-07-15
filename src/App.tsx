@@ -7,8 +7,9 @@ import { useAppStore } from './store/useAppStore'
 
 const Analysis = lazy(() => import('./pages/Analysis').then(m => ({ default: m.Analysis })))
 const ExportStudio = lazy(() => import('./pages/ExportStudio').then(m => ({ default: m.ExportStudio })))
+const SpatioEvent = lazy(() => import('./spatioevent/App').then(m => ({ default: m.App })))
 
-export type PageId = 'explorer' | 'analysis' | 'export' | 'settings'
+export type PageId = 'explorer' | 'spatioevent' | 'analysis' | 'export' | 'settings'
 
 export default function App() {
   const [activePage, setActivePage] = useState<PageId>('explorer')
@@ -69,6 +70,7 @@ export default function App() {
               {activePage === 'export' && <ExportStudio />}
             </div>
           )}
+          {activePage === 'spatioevent' && <SpatioEvent embedded />}
           {activePage === 'analysis' && <Analysis />}
           {activePage === 'settings' && <Settings />}
         </Suspense>

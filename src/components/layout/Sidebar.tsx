@@ -4,7 +4,7 @@ import {
   Map, BarChart3,
   Database, Download, Settings,
   ChevronLeft, ChevronRight, Zap,
-  Palette
+  Palette, Clock, ChevronDown
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useAppStore } from '../../store/useAppStore'
@@ -37,6 +37,7 @@ export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: Sidebar
   const { t } = useTranslation()
   const activeDataset = datasets.find(d => d.id === activeDatasetId) || datasets[datasets.length - 1]
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [toolsOpen, setToolsOpen] = useState(true)
 
   return (
     <aside
@@ -74,32 +75,156 @@ export function Sidebar({ activePage, onNavigate, collapsed, onToggle }: Sidebar
       <div className="flex-1 min-h-0 overflow-y-auto flex flex-col no-scrollbar">
         {/* Nav Items */}
         <nav className="py-3 px-2 space-y-1">
-        {NAV_ITEMS_KEYS.map(item => (
+          {/* 1. Live Explorer (Primary) */}
           <button
-            key={item.id}
-            onClick={() => onNavigate(item.id)}
-            title={collapsed ? t(item.key) : undefined}
+            onClick={() => onNavigate('explorer')}
+            title={collapsed ? t('nav_explorer') : undefined}
             className={clsx(
-              'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm',
-              'transition-all duration-150 cursor-pointer',
+              'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 cursor-pointer',
               collapsed ? 'justify-center' : '',
-              activePage === item.id
-                ? 'bg-spatio-primary/15 text-spatio-primary font-medium'
+              activePage === 'explorer'
+                ? 'bg-spatio-primary/15 text-spatio-primary font-bold'
                 : 'text-spatio-muted hover:text-spatio-text hover:bg-black/5 dark:hover:bg-white/5'
             )}
           >
-            <span className="shrink-0">{item.icon}</span>
+            <span className="shrink-0"><Map size={18} /></span>
             {!collapsed && (
-              <span className="flex-1 text-left truncate">{t(item.key)}</span>
+              <span className="flex-1 text-left truncate font-semibold text-spatio-text">{t('nav_explorer')}</span>
             )}
-            {!collapsed && item.badge && (
+            {!collapsed && (
               <span className="spatio-badge bg-spatio-primary/20 text-spatio-primary text-[10px]">
-                {item.badge}
+                LIVE
               </span>
             )}
           </button>
-        ))}
-      </nav>
+
+          {/* 2. Collapsible Tools Dropdown */}
+          {collapsed ? (
+            // In collapsed mode, render the rest of the icons as simple buttons
+            <div className="pt-2 border-t border-slate-300/10 dark:border-slate-800/20 flex flex-col gap-1 mt-2">
+              <button
+                onClick={() => onNavigate('spatioevent')}
+                title="วิเคราะห์รายชั่วโมง (SpatioEvent)"
+                className={clsx(
+                  "w-full flex items-center justify-center p-2.5 rounded-lg transition-all cursor-pointer",
+                  activePage === 'spatioevent'
+                    ? 'bg-rose-500/10 text-rose-500'
+                    : 'text-rose-500 hover:bg-black/5 dark:hover:bg-white/5'
+                )}
+              >
+                <Clock size={18} />
+              </button>
+              <button
+                disabled
+                title="สถิติขั้นสูง (Advanced Stats) - เร็วๆ นี้"
+                className="w-full flex items-center justify-center p-2.5 rounded-lg text-slate-600 opacity-40 transition-all cursor-not-allowed"
+              >
+                <BarChart3 size={18} />
+              </button>
+              <button
+                onClick={() => onNavigate('export')}
+                title={t('nav_export')}
+                className={clsx(
+                  "w-full flex items-center justify-center p-2.5 rounded-lg transition-all cursor-pointer",
+                  activePage === 'export' ? 'bg-spatio-primary/10 text-spatio-primary' : 'text-spatio-muted hover:text-spatio-text hover:bg-black/5 dark:hover:bg-white/5'
+                )}
+              >
+                <Download size={18} />
+              </button>
+              <button
+                onClick={() => onNavigate('settings')}
+                title={t('nav_settings')}
+                className={clsx(
+                  "w-full flex items-center justify-center p-2.5 rounded-lg transition-all cursor-pointer",
+                  activePage === 'settings' ? 'bg-spatio-primary/10 text-spatio-primary' : 'text-spatio-muted hover:text-spatio-text hover:bg-black/5 dark:hover:bg-white/5'
+                )}
+              >
+                <Settings size={18} />
+              </button>
+            </div>
+          ) : (
+            // In expanded mode, render as a collapsible accordion
+            <div className="space-y-1 mt-3">
+              {/* Header Toggle Button */}
+              <button
+                onClick={() => setToolsOpen(!toolsOpen)}
+                className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider hover:text-slate-350 dark:hover:text-slate-350 transition-colors select-none cursor-pointer"
+              >
+                <span>เครื่องมือ & ตั้งค่า</span>
+                <span className={clsx(
+                  "transition-transform duration-250 text-slate-500 shrink-0",
+                  toolsOpen ? "rotate-180" : "rotate-0"
+                )}>
+                  <ChevronDown size={14} />
+                </span>
+              </button>
+
+              {/* Collapsible Panel with max-height transition */}
+              <div className={clsx(
+                "transition-all duration-300 overflow-hidden",
+                toolsOpen ? "max-h-[220px] opacity-100 mt-1.5" : "max-h-0 opacity-0 pointer-events-none"
+              )}>
+                <div className="mx-1 p-1.5 rounded-xl border border-slate-300/10 dark:border-slate-800/30 bg-slate-100/10 dark:bg-slate-900/40 backdrop-blur-md flex flex-col gap-1 shadow-inner">
+                  {/* SpatioEvent */}
+                  <button
+                    onClick={() => onNavigate('spatioevent')}
+                    className={clsx(
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all duration-150 cursor-pointer font-medium hover:translate-x-0.5 text-left",
+                      activePage === 'spatioevent'
+                        ? "bg-rose-500/15 text-rose-400 font-semibold animate-fade-in"
+                        : "text-slate-400 dark:text-slate-300 hover:text-slate-100 hover:bg-slate-300/10 dark:hover:bg-white/5"
+                    )}
+                  >
+                    <span className="shrink-0 text-rose-500"><Clock size={15} /></span>
+                    <span className="flex-1 truncate font-semibold">วิเคราะห์รายชั่วโมง (SpatioEvent)</span>
+                  </button>
+
+                  {/* Advanced Stats */}
+                  <div
+                    title="สถิติขั้นสูง (Advanced Stats) - เร็วๆ นี้"
+                    className="flex items-center justify-between px-3 py-2 rounded-lg text-xs text-slate-650 opacity-40 cursor-not-allowed font-medium"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="shrink-0 text-slate-600"><BarChart3 size={15} /></span>
+                      <span className="truncate">สถิติขั้นสูง (Advanced Stats)</span>
+                    </div>
+                    <span className="text-[8px] tracking-wide font-extrabold uppercase bg-slate-800 text-slate-400 border border-slate-700/50 rounded-full px-1.5 py-0.5 shrink-0">
+                      Soon
+                    </span>
+                  </div>
+
+                  {/* Export */}
+                  <button
+                    onClick={() => onNavigate('export')}
+                    className={clsx(
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all duration-150 cursor-pointer font-medium hover:translate-x-0.5 text-left",
+                      activePage === 'export'
+                        ? "bg-spatio-primary/15 text-spatio-primary font-semibold"
+                        : "text-slate-400 dark:text-slate-300 hover:text-slate-100 hover:bg-slate-300/10 dark:hover:bg-white/5"
+                    )}
+                  >
+                    <span className="shrink-0"><Download size={15} /></span>
+                    <span className="flex-1 text-left truncate">{t('nav_export')}</span>
+                  </button>
+
+                  {/* Settings */}
+                  <button
+                    onClick={() => onNavigate('settings')}
+                    className={clsx(
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all duration-150 cursor-pointer font-medium hover:translate-x-0.5 text-left",
+                      activePage === 'settings'
+                        ? "bg-spatio-primary/15 text-spatio-primary font-semibold"
+                        : "text-slate-400 dark:text-slate-300 hover:text-slate-100 hover:bg-slate-300/10 dark:hover:bg-white/5"
+                    )}
+                  >
+                    <span className="shrink-0"><Settings size={15} /></span>
+                    <span className="flex-1 text-left truncate">{t('nav_settings')}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </nav>
 
       {/* Class Interval Settings (อันตภาคชั้น) */}
       {!collapsed && rawRows.length > 0 && colorMode !== 'custom' && geoMode === 'admin' && (displayMode === 'choropleth' || displayMode === 'bubble') && (

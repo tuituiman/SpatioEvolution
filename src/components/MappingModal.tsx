@@ -100,7 +100,7 @@ export const MappingModal: React.FC = () => {
         if (ingestionMode === 'admin_static' || ingestionMode === 'coord_static') {
           setActiveFlow('static')
           flow = 'static'
-        } else if (!!dataKeys.date) {
+        } else if (dataKeys.date) {
           // If it has date and is aggregated
           if (rawRows[0] && Object.keys(rawRows[0]).includes(dataKeys.date)) {
             const f = dataKeys.value ? 'dynamic' : 'linelist'
@@ -405,7 +405,7 @@ export const MappingModal: React.FC = () => {
       const hasDateCol = !!mapping.date
 
       localRows.forEach(row => {
-        let dateVal = hasDateCol ? row[mapping.date] : null
+        const dateVal = hasDateCol ? row[mapping.date] : null
         let d = parseDate(dateVal)
         if (!d || isNaN(d.getTime())) {
           d = new Date('2026-01-01')
@@ -451,7 +451,7 @@ export const MappingModal: React.FC = () => {
           val = cleanVal(row[mapping.value])
         }
 
-        let dateVal = hasDateCol ? row[mapping.date] : null
+        const dateVal = hasDateCol ? row[mapping.date] : null
         let d = parseDate(dateVal)
         if (!d || isNaN(d.getTime())) {
           d = new Date('2026-01-01')

@@ -691,7 +691,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     }
     set(s => {
       const idx = s.datasets.findIndex(d => d.id === id)
-      let next = [...s.datasets]
+      const next = [...s.datasets]
       if (idx !== -1) {
         next[idx] = newMeta
       } else {

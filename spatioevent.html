@@ -6,26 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- SEO -->
-    <meta name="description" content="SpatioEvolution — ระบบวิเคราะห์ข้อมูลเชิงพื้นที่และเวลา สำหรับระบาดวิทยา | ข้อมูลประมวลผลในเครื่องของคุณเท่านั้น ไม่มีการส่งข้อมูลออก" />
-    <meta name="keywords" content="spatioevolution, epidemiology, GIS, spatial analysis, choropleth, Thailand, ระบาดวิทยา, แผนที่" />
-    <meta name="author" content="SpatioEvolution Team" />
-    <!-- ป้องกัน Search Engine index (internal tool) -->
+    <meta name="description" content="SpatioEvent — ระบบวิเคราะห์เหตุการณ์ระบาดเฉียบพลันเชิงพื้นที่และเวลา | ข้อมูลประมวลผลในเครื่องของคุณเท่านั้น" />
+    <meta name="keywords" content="spatioevent, epidemiology, GIS, temporal analysis, real-time, outbreak tracking" />
+    <meta name="author" content="SpatioEvent Team" />
     <meta name="robots" content="noindex, nofollow" />
 
-    <!-- Open Graph / Social -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="SpatioEvolution — Spatial Epidemiology Platform" />
-    <meta property="og:description" content="ระบบวิเคราะห์ข้อมูลเชิงพื้นที่และเวลา สำหรับระบาดวิทยา | ข้อมูลประมวลผลในเครื่องเท่านั้น" />
-    <meta property="og:image" content="./SpatioEvolution_icon.png" />
-    <meta name="twitter:card" content="summary" />
-
-    <!-- PWA -->
-    <link rel="manifest" href="./manifest.json" />
+    <!-- PWA / Mobile Settings -->
     <meta name="theme-color" content="#0f172a" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="SpatioEvo" />
+    <meta name="apple-mobile-web-app-title" content="SpatioEvent" />
 
     <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy"
@@ -38,15 +29,6 @@
                worker-src 'self' blob:;
                media-src 'self' blob:;" />
 
-    <!-- Security Headers เพิ่มเติม -->
-    <!-- ป้องกัน MIME-sniffing attack -->
-    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <!-- จำกัดข้อมูล Referrer ที่ส่งออกไปยัง 3rd party -->
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
-    <!-- ปิด Browser API ที่ไม่ได้ใช้: camera, microphone, geolocation -->
-    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()" />
-
-    <!-- Inline Style defining local fonts same-origin -->
     <style>
       @font-face {
         font-family: 'Inter';
@@ -125,12 +107,12 @@
       }
     </style>
 
-    <title>SpatioEvolution</title>
+    <title>SpatioEvent — Incident Temporal Mapping</title>
   </head>
   <body>
     <div id="root"></div>
 
-    <!-- React App — โหลด Geodata แบบ Asynchronous อัตโนมัติทางโค้ด -->
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- React App Entry Point -->
+    <script type="module" src="/src/spatioevent/main.tsx"></script>
   </body>
 </html>

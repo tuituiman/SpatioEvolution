@@ -3,6 +3,7 @@ import { Upload, Bell } from 'lucide-react'
 
 const PAGE_TITLES: Record<PageId, { th: string; en: string }> = {
   explorer:  { th: 'แผนที่เชิงพื้นที่', en: 'Map Explorer' },
+  spatioevent: { th: 'วิเคราะห์รายชั่วโมง', en: 'SpatioEvent' },
   analysis:  { th: 'วิเคราะห์เชิงพื้นที่', en: 'Spatial Analysis' },
   export:    { th: 'ส่งออกผลลัพธ์',     en: 'Export Studio' },
   settings:  { th: 'การตั้งค่า',        en: 'Settings' },
