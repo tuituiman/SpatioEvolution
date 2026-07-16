@@ -156,6 +156,19 @@ export function parseSubDailyDate(val: any): Date | null {
     return new Date(adjustYear, month, day, hour, min, sec);
   }
 
+  // YYYYMMDD compact format (8 digits, no separator) — ค.ศ. and พ.ศ.
+  const mCompact = s.match(/^(\d{8})$/)
+  if (mCompact) {
+    let y = parseInt(s.slice(0, 4))
+    const mo = parseInt(s.slice(4, 6)) - 1
+    const d  = parseInt(s.slice(6, 8))
+    if (mo >= 0 && mo <= 11 && d >= 1 && d <= 31) {
+      if (y > 2400) y -= 543
+      const isSystemBE = new Date(2000, 0, 1).getFullYear() === 2543
+      return new Date(isSystemBE ? y + 543 : y, mo, d, 0, 0, 0)
+    }
+  }
+
   return null;
 }
 

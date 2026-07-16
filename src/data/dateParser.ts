@@ -55,10 +55,11 @@ export function parseDate(value: unknown): Date | null {
   return (
     _tryExcelSerial(s) ??
     _tryYearStr(s) ??
-    _tryISO(s) ??   // YYYY-MM-DD
+    _tryISO(s) ??      // YYYY-MM-DD
+    _tryCompact(s) ??  // YYYYMMDD (no separator, CE or BE)
     _tryMonthStr(s) ?? // YYYY-MM
-    _tryThai(s) ??   // DD/MM/YYYY or DD-MM-YYYY (BE or CE)
-    _tryWeekStr(s) ?? // YYYY-W01 or BE-W01
+    _tryThai(s) ??     // DD/MM/YYYY or DD-MM-YYYY (BE or CE)
+    _tryWeekStr(s) ??  // YYYY-W01 or BE-W01
     _tryNative(s)
   );
 }
@@ -333,6 +334,19 @@ function _fromExcelSerial(n: number): Date | null {
 function _tryExcelSerial(s: string): Date | null {
   if (/^\d{5}$/.test(s)) return _fromExcelSerial(parseInt(s));
   return null;
+}
+
+/** YYYYMMDD — 8 หลักติดกัน ไม่มี separator รองรับทั้ง ค.ศ. และ พ.ศ. */
+function _tryCompact(s: string): Date | null {
+  if (!/^\d{8}$/.test(s)) return null;
+  let y = parseInt(s.slice(0, 4));
+  const mo = parseInt(s.slice(4, 6));
+  const d  = parseInt(s.slice(6, 8));
+  // กรองค่าเดือน/วันที่เป็นไปไม่ได้
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  // แปลงปี พ.ศ. → ค.ศ. อัตโนมัติ
+  if (y > 2400) y -= 543;
+  return _validateDate(createDateCE(y, mo - 1, d));
 }
 
 function _tryYearStr(s: string): Date | null {

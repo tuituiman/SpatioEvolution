@@ -119,6 +119,39 @@ describe('parseDate()', () => {
     expect(parseDate('abc xyz')).toBeNull()
   })
 
+  it('parses compact YYYYMMDD format (CE) — e.g. 20251022', () => {
+    const result = parseDate('20251022')
+    expect(result).not.toBeNull()
+    expect(result!.getFullYear()).toBe(2025)
+    expect(result!.getMonth()).toBe(9)  // October (0-indexed)
+    expect(result!.getDate()).toBe(22)
+  })
+
+  it('parses compact YYYYMMDD format — 20260416 from screenshot', () => {
+    const result = parseDate('20260416')
+    expect(result).not.toBeNull()
+    expect(result!.getFullYear()).toBe(2026)
+    expect(result!.getMonth()).toBe(3)  // April
+    expect(result!.getDate()).toBe(16)
+  })
+
+  it('parses compact YYYYMMDD format (BE พ.ศ.) — e.g. 25681022', () => {
+    // 2568 พ.ศ. = 2025 ค.ศ.
+    const result = parseDate('25681022')
+    expect(result).not.toBeNull()
+    expect(result!.getFullYear()).toBe(2025)
+    expect(result!.getMonth()).toBe(9)  // October
+    expect(result!.getDate()).toBe(22)
+  })
+
+  it('returns null for compact with invalid month (e.g. 20251322)', () => {
+    expect(parseDate('20251322')).toBeNull()
+  })
+
+  it('returns null for compact with invalid day (e.g. 20251045)', () => {
+    expect(parseDate('20251045')).toBeNull()
+  })
+
   it('handles year 1900 edge case as year (integer)', () => {
     const result = parseDate(1960)
     expect(result).not.toBeNull()
