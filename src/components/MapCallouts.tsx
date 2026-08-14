@@ -7,6 +7,7 @@ import { registry, type GeoFeature } from '../data/registry'
 import { clsx } from 'clsx'
 import { locationResolver } from '../data/locationResolver'
 import { buildSelectionSlice, buildCumulativeSlice } from '../data/aggregator'
+import { getActiveCoordinatesSlice } from '../map/pointLayer'
 
 interface MapCalloutsProps {
   isExportMode?: boolean
@@ -38,6 +39,7 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
     canvasWidgets,
     widgetConfigs,
     showLocationPrefix,
+    geoMode,
   } = useAppStore()
 
   const mapWidget = canvasWidgets?.find(w => w.type === 'map')
@@ -88,9 +90,6 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
   const stableLayout = useMemo(() => {
     if (!labelCallouts || !map || mapLabelSource === 'none') return []
 
-    const features = registry.getFeatures(adminLevel)
-    const filters = getScopeFilters(scope)
-
     let list: Array<{
       id: string
       name: string
@@ -105,118 +104,157 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
       tCode: string
     }> = []
 
-    features.forEach((f: GeoFeature) => {
-      const p = f.properties
+    if (geoMode === 'coordinate') {
+      const sliceData = getActiveCoordinatesSlice()
+      sliceData.forEach(pt => {
+        if (pt.value <= 0) return
 
-      const pCode = String(p.P_code ?? '').replace(/\D/g, '').padStart(2, '0')
-      const pName = String(p.P_Name_T ?? p.PV_TN ?? '')
-      const aName = String(p.A_Name_T ?? p.AM_TN ?? '')
-      const tName = String(p.T_Name_T ?? p.TB_TN ?? '')
-      let aCode = ''
-      let tCode = ''
-
-      if (adminLevel === 'district') {
-        aCode = String(p.Admin_code ?? p.A_code_full ?? '').replace(/\D/g, '').padStart(4, '0')
-      } else if (adminLevel === 'subdistrict') {
-        aCode = String(p.Admin_code ?? p.A_code_full ?? '').replace(/\D/g, '').substring(0, 4).padStart(4, '0')
-        tCode = String(p.Admin_code ?? p.T_code ?? '').replace(/\D/g, '').padStart(6, '0')
-      }
-
-      if (!isInScope(pCode, aCode, filters, tCode)) return
-
-      // Determine the resolved name level and label code
-      let nameLevelResolved = adminLevel
-      let labelCode = adminLevel === 'province' ? pCode : adminLevel === 'district' ? aCode : tCode
-
-      if (mapLabelNameLevel === 'province') {
-        nameLevelResolved = 'province'
-        labelCode = pCode
-      } else if (mapLabelNameLevel === 'district') {
-        nameLevelResolved = adminLevel === 'subdistrict' ? 'district' : adminLevel
-        labelCode = adminLevel === 'subdistrict' ? aCode : labelCode
-      }
-
-      // Resolve area name for label
-      let dispName = nameLevelResolved === 'province' ? pName : nameLevelResolved === 'district' ? aName : tName
-      const resolved = locationResolver.getByCode(labelCode)
-      if (resolved) {
-        if (language === 'en') {
-          dispName = (nameLevelResolved === 'province' ? resolved.pNameEn : nameLevelResolved === 'district' ? resolved.aNameEn : resolved.tNameEn) || dispName
-        } else {
-          dispName = (nameLevelResolved === 'province' ? resolved.pName : nameLevelResolved === 'district' ? resolved.aName : resolved.tName) || dispName
+        const id = `point_${pt.lat.toFixed(5)}_${pt.lng.toFixed(5)}`
+        
+        let customVal = ''
+        if (mapLabelSource === 'custom-column' && mapLabelColumn && rawRows.length > 0) {
+          const matchedRow = rawRows.find(row => {
+            const rowLat = parseFloat(String(row[dataKeys.lat] || '').trim())
+            const rowLng = parseFloat(String(row[dataKeys.lng] || '').trim())
+            return !isNaN(rowLat) && !isNaN(rowLng) && 
+                   Math.abs(rowLat - pt.lat) < 1e-5 && 
+                   Math.abs(rowLng - pt.lng) < 1e-5
+          })
+          if (matchedRow) {
+            customVal = String(matchedRow[mapLabelColumn] || '')
+          }
         }
-      }
-      if (language !== 'en' && !showLocationPrefix) {
-        dispName = stripThaiPrefix(dispName, nameLevelResolved)
-      }
 
-      // Resolve Lat/Lng Centroid based on resolved label code level
-      let latLng: [number, number] | null = null
-      const resolvedFeature = registry.findByCode(labelCode)
-      if (resolvedFeature) {
-        latLng = getCentroid(resolvedFeature)
-      }
-      if (!latLng) {
-        latLng = getCentroid(f)
-      }
-      if (!latLng || isNaN(latLng[0]) || isNaN(latLng[1])) return
+        list.push({
+          id,
+          name: pt.label || (language === 'th' ? 'จุดพิกัด' : 'Point'),
+          resolvedValue: pt.value,
+          featureValue: pt.value,
+          latLng: [pt.lat, pt.lng],
+          customVal,
+          nameLevelCode: id,
+          nameLevelResolved: 'coordinate',
+          pCode: '',
+          aCode: '',
+          tCode: ''
+        })
+      })
+    } else {
+      const features = registry.getFeatures(adminLevel)
+      const filters = getScopeFilters(scope)
 
-      // Resolve custom column value if source is custom-column
-      let customVal = ''
-      if (mapLabelSource === 'custom-column' && mapLabelColumn && rawRows.length > 0) {
+      features.forEach((f: GeoFeature) => {
+        const p = f.properties
+
+        const pCode = String(p.P_code ?? '').replace(/\D/g, '').padStart(2, '0')
+        const pName = String(p.P_Name_T ?? p.PV_TN ?? '')
+        const aName = String(p.A_Name_T ?? p.AM_TN ?? '')
+        const tName = String(p.T_Name_T ?? p.TB_TN ?? '')
+        let aCode = ''
+        let tCode = ''
+
+        if (adminLevel === 'district') {
+          aCode = String(p.Admin_code ?? p.A_code_full ?? '').replace(/\D/g, '').padStart(4, '0')
+        } else if (adminLevel === 'subdistrict') {
+          aCode = String(p.Admin_code ?? p.A_code_full ?? '').replace(/\D/g, '').substring(0, 4).padStart(4, '0')
+          tCode = String(p.Admin_code ?? p.T_code ?? '').replace(/\D/g, '').padStart(6, '0')
+        }
+
+        if (!isInScope(pCode, aCode, filters, tCode)) return
+
+        // Determine the resolved name level and label code
+        let nameLevelResolved = adminLevel
+        let labelCode = adminLevel === 'province' ? pCode : adminLevel === 'district' ? aCode : tCode
+
+        if (mapLabelNameLevel === 'province') {
+          nameLevelResolved = 'province'
+          labelCode = pCode
+        } else if (mapLabelNameLevel === 'district') {
+          nameLevelResolved = adminLevel === 'subdistrict' ? 'district' : adminLevel
+          labelCode = adminLevel === 'subdistrict' ? aCode : labelCode
+        }
+
+        // Resolve area name for label
+        let dispName = nameLevelResolved === 'province' ? pName : nameLevelResolved === 'district' ? aName : tName
+        const resolved = locationResolver.getByCode(labelCode)
+        if (resolved) {
+          if (language === 'en') {
+            dispName = (nameLevelResolved === 'province' ? resolved.pNameEn : nameLevelResolved === 'district' ? resolved.aNameEn : resolved.tNameEn) || dispName
+          } else {
+            dispName = (nameLevelResolved === 'province' ? resolved.pName : nameLevelResolved === 'district' ? resolved.aName : resolved.tName) || dispName
+          }
+        }
+        if (language !== 'en' && !showLocationPrefix) {
+          dispName = stripThaiPrefix(dispName, nameLevelResolved)
+        }
+
+        // Resolve Lat/Lng Centroid based on resolved label code level
+        let latLng: [number, number] | null = null
+        const resolvedFeature = registry.findByCode(labelCode)
+        if (resolvedFeature) {
+          latLng = getCentroid(resolvedFeature)
+        }
+        if (!latLng) {
+          latLng = getCentroid(f)
+        }
+        if (!latLng || isNaN(latLng[0]) || isNaN(latLng[1])) return
+
+        // Resolve custom column value if source is custom-column
         const hasProvKey = !!dataKeys.province
         const hasDistKey = !!dataKeys.district
         const hasSubKey = !!dataKeys.subdistrict
-        
-        const matchedRow = rawRows.find(row => {
-          if (hasProvKey && String(row[dataKeys.province]).includes(pName)) {
-            if (adminLevel === 'province') return true
-            if (hasDistKey && String(row[dataKeys.district]).includes(aName)) {
-              if (adminLevel === 'district') return true
-              if (hasSubKey && String(row[dataKeys.subdistrict]).includes(tName)) return true
+        let customVal = ''
+        if (mapLabelSource === 'custom-column' && mapLabelColumn && rawRows.length > 0) {
+          const matchedRow = rawRows.find(row => {
+            if (hasProvKey && String(row[dataKeys.province]).includes(pName)) {
+              if (adminLevel === 'province') return true
+              if (hasDistKey && String(row[dataKeys.district]).includes(aName)) {
+                if (adminLevel === 'district') return true
+                if (hasSubKey && String(row[dataKeys.subdistrict]).includes(tName)) return true
+              }
             }
+            return false
+          })
+          if (matchedRow) {
+            customVal = String(matchedRow[mapLabelColumn] || '')
           }
-          return false
+        }
+
+        // Calculate featureValue & resolvedValue for the current active frame (periodSlice)
+        let featureValue = 0
+        let resolvedValue = 0
+        if (periodSlice) {
+          featureValue = lookupValue(periodSlice, adminLevel, pCode, aCode, tCode)
+          resolvedValue = lookupValue(periodSlice, nameLevelResolved, pCode, aCode, tCode)
+        }
+
+        const id = labelCode
+        list.push({
+          id,
+          name: dispName,
+          resolvedValue,
+          featureValue,
+          latLng,
+          customVal,
+          nameLevelCode: labelCode,
+          nameLevelResolved,
+          pCode,
+          aCode,
+          tCode,
         })
-        if (matchedRow) {
-          customVal = String(matchedRow[mapLabelColumn] || '')
-        }
-      }
-
-      // Calculate featureValue & resolvedValue for the current active frame (periodSlice)
-      let featureValue = 0
-      let resolvedValue = 0
-      if (periodSlice) {
-        featureValue = lookupValue(periodSlice, adminLevel, pCode, aCode, tCode)
-        resolvedValue = lookupValue(periodSlice, nameLevelResolved, pCode, aCode, tCode)
-      }
-
-      const id = labelCode
-      list.push({
-        id,
-        name: dispName,
-        resolvedValue,
-        featureValue,
-        latLng,
-        customVal,
-        nameLevelCode: labelCode,
-        nameLevelResolved,
-        pCode,
-        aCode,
-        tCode,
       })
-    })
 
-    // Deduplicate by nameLevelCode (keep the representative with the highest native featureValue for centroid placement)
-    if (mapLabelNameLevel && mapLabelNameLevel !== 'default') {
-      const grouped: Record<string, typeof list[number]> = {}
-      list.forEach(item => {
-        const key = item.nameLevelCode
-        if (!grouped[key] || item.featureValue > grouped[key].featureValue) {
-          grouped[key] = item
-        }
-      })
-      list = Object.values(grouped)
+      // Deduplicate by nameLevelCode (keep the representative with the highest native featureValue for centroid placement)
+      if (mapLabelNameLevel && mapLabelNameLevel !== 'default') {
+        const grouped: Record<string, typeof list[number]> = {}
+        list.forEach(item => {
+          const key = item.nameLevelCode
+          if (!grouped[key] || item.featureValue > grouped[key].featureValue) {
+            grouped[key] = item
+          }
+        })
+        list = Object.values(grouped)
+      }
     }
 
     // Apply Density Limit Filters ─ sorting and filtering by the resolved level value in the current period
@@ -234,7 +272,7 @@ export const MapCallouts: React.FC<MapCalloutsProps> = ({ isExportMode = false }
     }
 
     return list
-  }, [mapLabelSource, mapLabelColumn, mapLabelLimit, mapLabelThreshold, mapLabelNameLevel, adminLevel, scope, map, rawRows, dataKeys, mapVersion, dictionary, periods, language, labelCallouts, showLocationPrefix, periodSlice])
+  }, [mapLabelSource, mapLabelColumn, mapLabelLimit, mapLabelThreshold, mapLabelNameLevel, adminLevel, scope, map, rawRows, dataKeys, mapVersion, dictionary, periods, language, labelCallouts, showLocationPrefix, periodSlice, geoMode])
 
   // ─── 3) ข้อมูล label สุดท้าย ───
   const labelData = useMemo(() => {
