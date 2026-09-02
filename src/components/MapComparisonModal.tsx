@@ -244,8 +244,8 @@ export const MapComparisonModal: React.FC<MapComparisonModalProps> = ({ isOpen, 
       map.removeLayer(tileLayersRef.current[idx])
     }
 
-    let url = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png'
-    let maxNativeZoom = 19
+    let url = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+    let maxNativeZoom = 16
 
     if (style === 'street') {
       url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'

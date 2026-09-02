@@ -92,14 +92,14 @@ export function App({ embedded = false }: SpatioEventAppProps) {
       map.removeLayer(baseTileLayer.current)
     }
 
-    let url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' // CartoDB Dark Matter
+    let url = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
     if (baseMapStyle === 'street') {
       url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
     } else if (baseMapStyle === 'satellite') {
       url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
     }
 
-    baseTileLayer.current = L.tileLayer(url, { maxZoom: 19 }).addTo(map)
+    baseTileLayer.current = L.tileLayer(url, { maxZoom: 19, maxNativeZoom: baseMapStyle === 'dark' ? 16 : 19 }).addTo(map)
   }, [baseMapStyle])
 
   // 3. Render Active Cases and Buffers
